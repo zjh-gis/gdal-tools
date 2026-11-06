@@ -1,0 +1,63 @@
+contract_version: "1.0"
+tool:
+  id: gdal.raster_polygonize
+  version: 1.0.0
+  title: 栅格转面
+  description: >-
+    用 gdal_polygonize 把像元值相同的连通区域转为多边形。典型流程：先用 raster_calc
+    阈值化为 Byte 类别栅格，再转面。
+  category: conversion
+  keywords: [raster, vector, polygonize, gdal_polygonize]
+interfaces:
+  mcp: raster_polygonize
+inputs:
+  data_path:
+    kind: file
+    required: true
+    semantic_type: geo:ClassRaster
+    formats: ["GDAL:raster"]
+    access_modes: [local_file]
+    description: 输入类别栅格（工作区内）
+  mask_path:
+    kind: file
+    required: false
+    semantic_type: geo:Mask
+    formats: ["GDAL:raster"]
+    access_modes: [local_file]
+    description: 掩膜栅格，0 值像元不参与转面
+parameters:
+  band: {$shared: band}
+  output_format: {$shared: vector_format}
+  layer_name: {$shared: layer_name, default: polygons}
+  field_name: {$shared: layer_name, default: value, description: 存放像元值的字段名}
+  connectedness: {type: integer, enum: [4, 8], default: 4}
+  use_mask: {type: boolean, default: true, description: 使用波段自身的 nodata/掩膜（false 表示全部转面）}
+  overwrite: {$shared: overwrite}
+outputs:
+  output_path:
+    kind: file
+    required: true
+    semantic_type: geo:PolygonVector
+    format: "GPKG | GeoJSON | FlatGeobuf（按后缀或 output_format）"
+    constraints: {suffix: [.gpkg, .geojson, .json, .fgb]}
+    overwrite: require_flag
+    commit: atomic
+    description: 输出矢量路径（工作区内）
+execution:
+  mode: sync
+  long_running: true
+  progress: true
+  idempotent: true
+  side_effects: none
+  timeout_seconds: {default: 14400, env: GDAL_COMMAND_TIMEOUT_SECONDS}
+  resources: {cpu: 1, memory_mb: 2048, scratch_disk: 约等于输出大小}
+validation:
+  pre: [inputs_exist, paths_in_workspace, output_suffix_vector, output_absent_or_overwrite]
+  post: [output_exists_non_empty, feature_count_reported]
+errors: [invalid_argument, path_not_allowed, not_found, output_exists, gdal_unavailable, gdal_timeout, gdal_failed]
+examples:
+  - name: 掩膜转面
+    arguments:
+      data_path: /data/out/above_1000m.tif
+      output_path: /data/out/above_1000m.gpkg
+      overwrite: true

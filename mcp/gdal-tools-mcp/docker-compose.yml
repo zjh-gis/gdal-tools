@@ -1,0 +1,16 @@
+# Build from mineral-tools-mcp package root:
+#   docker compose -f mcp/gdal-tools-mcp/docker-compose.yml up --build
+
+services:
+  gdal-tools-mcp:
+    build:
+      context: ../..
+      dockerfile: mcp/gdal-tools-mcp/Dockerfile
+    environment:
+      MCP_TRANSPORT: stdio
+      MCP_WORKSPACES: /data
+      PYTHONPATH: /app/mineral-tools-mcp:/app/mineral-tools-mcp/mcp
+    volumes:
+      - ${MCP_DATA:-../../data}:/data
+    stdin_open: true
+    tty: true

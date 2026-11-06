@@ -1,0 +1,108 @@
+# GeoTool Contract — package level. Tool contracts live in tools/*.yaml.
+# `gdal-tools describe --all` prints the fully resolved bundle (shared fragments expanded).
+contract_version: "1.0"
+
+package:
+  name: gdal-tools
+  description: >-
+    确定性的 GDAL/OGR 栅格、矢量与 DEM 地形处理工具集。每个工具是一个独立计算任务，
+    输入输出均为显式文件路径，不依赖任何 Agent 或平台接口。
+
+runtime:
+  type: oci-image
+  image: gdal-tools
+  platforms: [linux/amd64]
+  gdal: "3.6 (Debian bookworm gdal-bin)"
+  python: "3.11"
+  entrypoint: [gdal-tools]
+  default_command: [serve-mcp, --transport, sse]
+  workspace:
+    env: GDAL_TOOLS_WORKSPACES
+    default: /data
+    description: >-
+      所有输入与输出路径必须位于这些目录之下（多个目录用 ":" 分隔）。
+      兼容别名：MCP_WORKSPACES（已有部署可继续使用，二者只设一个即可）。
+  environment:
+    GDAL_TOOLS_WORKSPACES: {default: /data, description: 允许读写的根目录列表（对外唯一配置项）}
+    GDAL_COMMAND_TIMEOUT_SECONDS: {default: 14400, description: 单个 GDAL 命令的超时秒数}
+    GDAL_TOOLS_MAX_CONCURRENT_JOBS: {default: 2, description: MCP 服务内同时运行的重任务数}
+    GDAL_TOOLS_HOST: {default: 0.0.0.0, description: MCP 网络监听地址（镜像内）}
+    GDAL_TOOLS_PORT: {default: 7861, description: MCP 网络监听端口}
+
+interfaces:
+  cli:
+    run: gdal-tools run <tool-id> --args '<json>'
+    result: stdout 输出一个 JSON 信封；退出码与错误码一一对应
+  mcp:
+    transports: [stdio, sse, streamable-http]
+    error_format: "isError=true，文本以 [error_code] 开头，structuredContent 为同一 JSON 信封"
+
+semantic_types:
+  geo:Raster: 任意 GDAL 可读的栅格数据
+  geo:DEM: 单波段数字高程模型（SRTM、ASTER GDEM、Copernicus DEM 等），像元值为高程
+  geo:Vector: 任意 OGR 可读的矢量数据
+  geo:PolygonVector: 面要素矢量（用作裁剪边界）
+  geo:Mask: 0 值表示排除的掩膜栅格
+  geo:ClassRaster: 整数类别栅格
+  geo:RasterVRT: 引用源文件的 GDAL 虚拟栅格
+  geo:RasterOverviews: 栅格金字塔（内部或 .ovr 外挂）
+  geo:SlopeRaster: 坡度栅格（度或百分比）
+  geo:AspectRaster: 坡向栅格（度）
+  geo:HillshadeRaster: 山体阴影栅格（Byte）
+  geo:TerrainIndexRaster: 地形指数栅格（TRI/TPI/roughness）
+  geo:ContourVector: 等值线或等值面矢量
+  geo:RasterMetadata: 栅格元数据（JSON 结果）
+  geo:VectorMetadata: 矢量元数据（JSON 结果）
+
+# Reusable fragments, referenced from tool contracts as {$shared: <name>}.
+shared:
+  creation_options:
+    type: object
+    additionalProperties: {type: string}
+    description: >-
+      GeoTIFF 创建选项，例如 {"COMPRESS": "DEFLATE", "TILED": "YES", "BIGTIFF": "IF_SAFER"}。
+      允许的键：BIGTIFF, BLOCKSIZE, BLOCKXSIZE, BLOCKYSIZE, COMPRESS, COPY_SRC_OVERVIEWS,
+      INTERLEAVE, LEVEL, NUM_THREADS, PREDICTOR, QUALITY, SPARSE_OK, TILED, ZLEVEL
+  bbox:
+    type: array
+    items: {type: number}
+    minItems: 4
+    maxItems: 4
+    description: "[xmin, ymin, xmax, ymax]"
+  crs:
+    type: string
+    minLength: 1
+    description: 坐标参考系，例如 EPSG:4326、EPSG:32650
+  data_type:
+    type: string
+    enum: [Byte, Int8, UInt16, Int16, UInt32, Int32, Float32, Float64]
+  band:
+    type: integer
+    minimum: 1
+    default: 1
+    description: 参与计算的波段（从 1 开始）
+  nodata:
+    type: number
+  dem_algorithm:
+    type: string
+    enum: [Horn, ZevenbergenThorne]
+    description: Horn（默认，适合起伏地形）或 ZevenbergenThorne（适合平缓地形）
+  dem_scale:
+    type: number
+    exclusiveMinimum: 0
+    description: 垂直单位与水平单位之比（-s）。经纬度 DEM、高程单位为米时用 111120
+  compute_edges:
+    type: boolean
+    default: false
+    description: 计算栅格边缘像元（否则边缘为 nodata）
+  vector_format:
+    type: string
+    enum: [GPKG, GeoJSON, FlatGeobuf]
+    description: 缺省时按 output_path 后缀推断
+  layer_name:
+    type: string
+    pattern: "^[A-Za-z_][A-Za-z0-9_]{0,62}$"
+  overwrite:
+    type: boolean
+    default: false
+    description: 输出已存在时是否替换

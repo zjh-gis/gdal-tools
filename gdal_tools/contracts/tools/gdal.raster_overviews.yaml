@@ -1,0 +1,55 @@
+contract_version: "1.0"
+tool:
+  id: gdal.raster_overviews
+  version: 1.0.0
+  title: 构建/清除金字塔
+  description: >-
+    用 gdaladdo 构建或清除金字塔。缺省把内部金字塔写入输入文件本身（原地修改）；
+    external=true 时写外挂 .ovr，源文件不变。
+  category: raster
+  keywords: [raster, overviews, pyramid, gdaladdo]
+interfaces:
+  mcp: raster_overviews
+inputs:
+  data_path:
+    kind: file
+    required: true
+    semantic_type: geo:Raster
+    formats: [GTiff, COG, "GDAL:raster"]
+    access_modes: [local_file]
+    constraints: {writable: external=false 时文件须可写}
+    description: 输入栅格路径（工作区内）
+parameters:
+  levels:
+    type: array
+    items: {type: integer, minimum: 2}
+    minItems: 1
+    description: 抽稀倍数，缺省 [2, 4, 8, 16]
+  resampling:
+    type: string
+    enum: [nearest, average, rms, bilinear, gauss, cubic, cubicspline, lanczos, average_magphase, mode]
+    default: average
+  external: {type: boolean, default: false, description: 写外挂 .ovr 而不修改输入文件}
+  clean: {type: boolean, default: false, description: 清除已有金字塔}
+  compress: {type: string, enum: [NONE, DEFLATE, LZW, JPEG, ZSTD, PACKBITS]}
+outputs:
+  overviews:
+    kind: in_place
+    of_input: data_path
+    semantic_type: geo:RasterOverviews
+    description: external=false 时写入 data_path 本身；external=true 时写 <data_path>.ovr
+execution:
+  mode: sync
+  long_running: true
+  progress: true
+  idempotent: true
+  side_effects: 原地修改 data_path（external=false）
+  timeout_seconds: {default: 14400, env: GDAL_COMMAND_TIMEOUT_SECONDS}
+  resources: {cpu: 1, memory_mb: 1024, scratch_disk: 约为输入大小的 1/3}
+validation:
+  pre: [input_exists, input_in_workspace]
+  post: [overviews_visible_after_build, overviews_absent_after_clean]
+errors: [invalid_argument, path_not_allowed, not_found, gdal_unavailable, gdal_timeout, gdal_failed]
+examples:
+  - name: 外挂金字塔
+    arguments: {data_path: /data/out/dem_utm50n.tif, external: true}

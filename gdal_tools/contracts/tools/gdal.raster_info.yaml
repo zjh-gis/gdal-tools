@@ -1,0 +1,41 @@
+contract_version: "1.0"
+tool:
+  id: gdal.raster_info
+  version: 1.0.0
+  title: 栅格元数据
+  description: 读取栅格元数据（CRS、尺寸、波段、nodata、金字塔，可选统计值），基于 gdalinfo。
+  category: inspect
+  keywords: [raster, metadata, gdalinfo]
+interfaces:
+  mcp: raster_info
+inputs:
+  data_path:
+    kind: file
+    required: true
+    semantic_type: geo:Raster
+    formats: ["GDAL:raster"]
+    access_modes: [local_file]
+    description: 输入栅格路径（工作区内），例如 /data/dem/n39e116.tif
+parameters:
+  statistics: {type: boolean, default: false, description: 计算每个波段的 min/max/mean/stdDev（-stats）}
+  checksum: {type: boolean, default: false, description: 计算波段校验和（-checksum）}
+outputs:
+  metadata:
+    kind: result
+    semantic_type: geo:RasterMetadata
+    description: 结果 outputs.raster 为归纳后的元数据，outputs.metadata 为 gdalinfo -json 原文
+execution:
+  mode: sync
+  long_running: false
+  progress: false
+  idempotent: true
+  side_effects: statistics=true 时 GDAL 可能写出 .aux.xml 统计缓存
+  timeout_seconds: 600
+  resources: {cpu: 1, memory_mb: 256}
+validation:
+  pre: [input_exists, input_in_workspace]
+  post: []
+errors: [invalid_argument, path_not_allowed, not_found, gdal_unavailable, gdal_timeout, gdal_failed]
+examples:
+  - name: 查看 DEM 元数据与统计
+    arguments: {data_path: /data/dem/gdem/ASTGTMV003_N39E116_dem.tif, statistics: true}

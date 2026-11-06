@@ -1,0 +1,79 @@
+server_id: gdal-tools-mcp
+version: "0.2.0"
+environment_id: sciasset://mineral-tools-mcp/environment/gdal-gis
+description: GDAL/OGR MCP adapter for gdal-tools (algorithms in gdal_tools.core)
+domain:
+  - mineral_exploration
+  - gis
+  - remote_sensing
+tools:
+  - id: gdal.raster_info
+    mcp_name: raster_info
+    capability: [raster_info]
+    call_mode: executable
+    long_running: false
+  - id: gdal.translate
+    mcp_name: raster_convert
+    capability: [raster_convert]
+    call_mode: executable
+    long_running: true
+  - id: gdal.warp
+    mcp_name: raster_warp
+    capability: [raster_reproject, raster_clip, raster_resample, raster_mosaic]
+    call_mode: executable
+    long_running: true
+  - id: gdal.dem_slope
+    mcp_name: dem_slope
+    capability: [dem_slope]
+    call_mode: executable
+    long_running: true
+  - id: gdal.dem_aspect
+    mcp_name: dem_aspect
+    capability: [dem_aspect]
+    call_mode: executable
+    long_running: true
+  - id: gdal.dem_hillshade
+    mcp_name: dem_hillshade
+    capability: [dem_hillshade]
+    call_mode: executable
+    long_running: true
+  - id: gdal.dem_terrain_index
+    mcp_name: dem_terrain_index
+    capability: [terrain_index]
+    call_mode: executable
+    long_running: true
+  - id: gdal.dem_contour
+    mcp_name: dem_contour
+    capability: [contour_extract]
+    call_mode: executable
+    long_running: true
+  - id: gdal.build_vrt
+    mcp_name: raster_build_vrt
+    capability: [raster_mosaic]
+    call_mode: executable
+    long_running: true
+  - id: gdal.raster_calc
+    mcp_name: raster_calc
+    capability: [raster_calculate]
+    call_mode: executable
+    long_running: true
+  - id: gdal.polygonize
+    mcp_name: raster_polygonize
+    capability: [raster_polygonize]
+    call_mode: executable
+    long_running: true
+  - id: gdal.overviews
+    mcp_name: raster_overviews
+    capability: [raster_overviews]
+    call_mode: executable
+    long_running: true
+  - id: gdal.vector_info
+    mcp_name: vector_info
+    capability: [vector_info]
+    call_mode: executable
+    long_running: false
+  - id: gdal.vector_convert
+    mcp_name: vector_convert
+    capability: [vector_convert, coordinate_transform]
+    call_mode: executable
+    long_running: true

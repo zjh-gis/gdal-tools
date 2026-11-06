@@ -1,0 +1,41 @@
+# GeoInvoke execution policy vocabulary (MVP)
+# Benchmark policy_gold.call_mode must use call_mode enum only.
+# Other flags are independent attributes (avoid combinatorial enums).
+
+version: "0.1"
+description: >
+  Coarse execution policy for retrieval L2 / awareness tasks.
+  Catalog tools_metadata.call_mode values map into call_mode via maps_from.
+
+call_mode:
+  executable:
+    label: Tool may be selected and executed for this request
+    maps_from:
+      - lightweight_service
+      - indexed_or_lightweight_service
+  handoff:
+    label: Request should not execute a tool; handoff / refuse fabrication
+    maps_from:
+      - indexed_or_handoff
+      - handoff_to_simulation_agent
+      - handoff_to_experiment_agent
+      - handoff_to_simulation_or_experiment_agent
+      - handoff_to_knowledge_resource_task
+
+# Independent attributes (bool on ToolSpec / policy_gold); not part of call_mode enum
+attributes:
+  - destructive
+  - requires_confirmation
+  - long_running
+
+gold_policy:
+  # Gold MUST write canonical enum values only.
+  call_mode_allowed: [executable, handoff]
+  # Read-time aliases for legacy docs / GeoAwareness decision labels — NOT valid Gold enum.
+  call_mode_aliases:
+    handoff_required: handoff
+    executable: executable
+  notes: >
+    policy_gold.call_mode uses call_mode enum (executable | handoff).
+    Do not write handoff_required as Gold call_mode; that string is an agent status /
+    GeoAwareness decision label, not the retrieval policy enum.

@@ -1,0 +1,23 @@
+# From package root:
+#   export MCP_DATA=/path/to/data
+#   docker compose -f mcp/docker-compose.yml -f mcp/docker-compose.agent.yml \
+#     --profile gdal up --build -d gdal-tools
+
+x-python-image: &python_image docker.1ms.run/python:3.11-slim
+
+services:
+  gdal-tools:
+    build:
+      context: ..
+      dockerfile: docker/gdal.Dockerfile
+      args:
+        PYTHON_IMAGE: *python_image
+    image: gdal-tools:1.0
+    environment:
+      GDAL_TOOLS_WORKSPACES: /data
+      PYTHONPATH: /app/gdal-tools:/app/gdal-tools/mcp
+    volumes:
+      - ${MCP_DATA:-../data}:/data
+    stdin_open: true
+    tty: true
+    profiles: ["gdal"]

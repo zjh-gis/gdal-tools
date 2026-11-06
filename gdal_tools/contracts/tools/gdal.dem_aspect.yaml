@@ -1,0 +1,58 @@
+contract_version: "1.0"
+tool:
+  id: gdal.dem_aspect
+  version: 1.0.0
+  title: DEM 坡向
+  description: 用 gdaldem aspect 计算坡向（缺省 0°=正北、顺时针；平坦区为 -9999，除非 zero_for_flat）。
+  category: terrain
+  keywords: [dem, aspect, terrain, gdaldem]
+interfaces:
+  mcp: dem_aspect
+inputs:
+  data_path:
+    kind: file
+    required: true
+    semantic_type: geo:DEM
+    formats: [GTiff, COG, VRT, SRTMHGT, AAIGrid, "GDAL:raster"]
+    access_modes: [local_file]
+    constraints:
+      bands: 至少 1 个，band 不超过波段数
+      crs: 任意（坡向与水平/垂直单位比例无关）
+    description: 输入 DEM 路径（工作区内）
+parameters:
+  trigonometric: {type: boolean, default: false, description: 0°=正东、逆时针，而不是 0°=正北、顺时针}
+  zero_for_flat: {type: boolean, default: false, description: 平坦区输出 0 而不是 -9999}
+  algorithm: {$shared: dem_algorithm}
+  compute_edges: {$shared: compute_edges}
+  band: {$shared: band}
+  creation_options: {$shared: creation_options}
+outputs:
+  output_path:
+    kind: file
+    required: true
+    semantic_type: geo:AspectRaster
+    format: GTiff
+    data_type: Float32
+    nodata: -9999
+    units: degree
+    grid: 与输入 DEM 相同（CRS、尺寸、地理变换）
+    overwrite: replace
+    commit: atomic_when_geotiff
+    description: 输出坡向栅格路径（工作区内，推荐 .tif）
+execution:
+  mode: sync
+  long_running: true
+  progress: true
+  idempotent: true
+  side_effects: none
+  timeout_seconds: {default: 14400, env: GDAL_COMMAND_TIMEOUT_SECONDS}
+  resources: {cpu: 1, memory_mb: 1024, scratch_disk: 约为输入像元数 × 4 字节}
+validation:
+  pre: [input_exists, paths_in_workspace, output_differs_from_input, band_within_input]
+  post: [output_exists_non_empty, raster_readable, crs_preserved, grid_preserved]
+errors: [invalid_argument, path_not_allowed, not_found, gdal_unavailable, gdal_timeout, gdal_failed]
+examples:
+  - name: DEM 坡向
+    arguments:
+      data_path: /data/dem/srtm/N39E116.hgt
+      output_path: /data/out/aspect.tif

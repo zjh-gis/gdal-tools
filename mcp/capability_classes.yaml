@@ -1,0 +1,41 @@
+# P0 capability classes exposed via MCP (for ≥10-class accounting)
+
+classes:
+  - id: raster_transform
+    server: gdal-tools-mcp
+    tools: [raster_info, raster_convert, raster_warp, dem_slope]
+  - id: vector_transform
+    server: gdal-tools-mcp
+    tools: [vector_info, vector_convert]
+  - id: geochemical_anomaly
+    server: mineral-core-mcp
+    tools: [geochemical_anomaly]
+  - id: geochemical_cleaning
+    server: mineral-core-mcp
+    tools: [geochemical_cleaning]
+  - id: element_combination
+    server: mineral-core-mcp
+    tools: [element_combination]
+  - id: alteration_detection
+    server: mineral-core-mcp
+    tools: [alteration_extraction]
+  - id: lineament_extraction
+    server: mineral-core-mcp
+    tools: [lineament_extraction]
+  - id: spectral_index
+    server: mineral-core-mcp
+    tools: [spectral_index]
+  - id: prospectivity_mapping
+    server: mineral-core-mcp
+    tools: [prospectivity_wofe]
+  - id: geophysical_filter
+    server: mineral-core-mcp
+    tools: [geophysics_filter]
+  - id: gravity_magnetic_processing
+    server: harmonica-mcp
+    tools: [upward_continuation, reduction_to_pole, bouguer_correction]
+
+notes: >
+  11 classes listed under mineral-tools-mcp/mcp. Environments: metadata/environments.yaml.
+  Agents connect via standard MCP (stdio or HTTP/SSE), not Cursor-specific APIs.
+  LoopStructural deferred (P1).

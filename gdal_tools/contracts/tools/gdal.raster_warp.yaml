@@ -1,0 +1,96 @@
+contract_version: "1.0"
+tool:
+  id: gdal.raster_warp
+  version: 1.0.0
+  title: 重投影/重采样/镶嵌/按边界裁剪
+  description: >-
+    用 gdalwarp 重投影、重采样、镶嵌多幅栅格，或按矩形/矢量边界裁剪。按多边形裁剪时设置
+    cutline_path 与 crop_to_cutline=true。写出后校验输出 CRS 与网格。
+    data_path 与 data_paths 至少提供一个。
+  category: raster
+  keywords: [raster, reproject, resample, mosaic, clip, cutline, gdalwarp]
+interfaces:
+  mcp: raster_warp
+inputs:
+  data_path:
+    kind: file
+    required: false
+    semantic_type: geo:Raster
+    formats: ["GDAL:raster"]
+    access_modes: [local_file]
+    description: 单个输入栅格
+  data_paths:
+    kind: file_list
+    required: false
+    semantic_type: geo:Raster
+    formats: ["GDAL:raster"]
+    access_modes: [local_file]
+    constraints: {crs: 多个输入应使用相同 CRS 与波段结构}
+    description: 待镶嵌的多个输入栅格（保持顺序，后者覆盖前者）
+  cutline_path:
+    kind: file
+    required: false
+    semantic_type: geo:PolygonVector
+    formats: ["OGR:vector"]
+    access_modes: [local_file]
+    constraints: {crs: 任意（GDAL 自动转换到栅格 CRS）}
+    description: 裁剪边界面要素（GeoJSON/GPKG/SHP）
+parameters:
+  target_crs: {$shared: crs, description: 目标坐标系（权威代码），例如 EPSG:32650}
+  resolution:
+    oneOf:
+      - {type: number, exclusiveMinimum: 0}
+      - {type: array, items: {type: number, exclusiveMinimum: 0}, minItems: 2, maxItems: 2}
+    description: 目标像元大小，或 [xres, yres]
+  bbox: {$shared: bbox}
+  bbox_crs: {$shared: crs, description: bbox 的坐标系（缺省为目标 CRS）}
+  resampling:
+    type: string
+    enum: [near, bilinear, cubic, cubicspline, lanczos, average, rms, mode, max, min, med, q1, q3, sum]
+    default: near
+    description: 重采样方法；DEM 推荐 bilinear 或 cubic，类别栅格用 near
+  cutline_layer: {$shared: layer_name, description: cutline_path 中的图层名}
+  cutline_where: {type: string, minLength: 1, maxLength: 1000, description: "裁剪要素的属性过滤，例如 NAME = 'Beijing'"}
+  crop_to_cutline: {type: boolean, default: false, description: 输出范围收缩到裁剪边界（通常需要）}
+  src_nodata: {$shared: nodata, description: 输入 nodata 值}
+  dst_nodata: {$shared: nodata, description: 裁剪边界外像元的 nodata 值}
+  output_type: {$shared: data_type}
+  multithread: {type: boolean, default: false, description: 使用全部 CPU 核（-multi）}
+  creation_options: {$shared: creation_options}
+outputs:
+  output_path:
+    kind: file
+    required: true
+    semantic_type: geo:Raster
+    format: GTiff
+    overwrite: replace
+    commit: atomic_when_geotiff
+    description: 输出栅格路径（工作区内，推荐 .tif）
+execution:
+  mode: sync
+  long_running: true
+  progress: true
+  idempotent: true
+  side_effects: none
+  timeout_seconds: {default: 14400, env: GDAL_COMMAND_TIMEOUT_SECONDS}
+  resources: {cpu: "1（multithread=true 时为全部核）", memory_mb: 2048, scratch_disk: 约等于输出大小}
+validation:
+  pre: [inputs_exist, paths_in_workspace, output_differs_from_inputs, target_crs_is_authority_code]
+  post: [output_exists_non_empty, raster_readable, output_crs_matches_target]
+errors: [invalid_argument, path_not_allowed, not_found, gdal_unavailable, gdal_timeout, gdal_failed]
+examples:
+  - name: DEM 投影到 UTM 50N
+    arguments:
+      data_path: /data/dem/gdem/ASTGTMV003_N39E116_dem.tif
+      output_path: /data/out/dem_utm50n.tif
+      target_crs: EPSG:32650
+      resolution: 30
+      resampling: bilinear
+  - name: 按行政区裁剪
+    arguments:
+      data_path: /data/dem/gdem/ASTGTMV003_N39E116_dem.tif
+      output_path: /data/out/dem_beijing.tif
+      cutline_path: /data/boundary/admin.gpkg
+      cutline_where: "NAME = 'Beijing'"
+      crop_to_cutline: true
+      dst_nodata: -9999

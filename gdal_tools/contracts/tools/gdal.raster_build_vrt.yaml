@@ -1,0 +1,66 @@
+contract_version: "1.0"
+tool:
+  id: gdal.raster_build_vrt
+  version: 1.0.0
+  title: 虚拟镶嵌/波段堆叠
+  description: >-
+    用 gdalbuildvrt 构建虚拟镶嵌或波段堆叠，不复制像元，适合大量分幅（如全球 DEM 切片）。
+    VRT 只保存对源文件的引用，源文件移动后 VRT 失效。
+  category: raster
+  keywords: [raster, vrt, mosaic, tiles, gdalbuildvrt]
+interfaces:
+  mcp: raster_build_vrt
+inputs:
+  data_paths:
+    kind: file_list
+    required: true
+    semantic_type: geo:Raster
+    formats: ["GDAL:raster"]
+    access_modes: [local_file]
+    constraints: {crs: 所有输入须为相同 CRS（gdalbuildvrt 不做重投影）}
+    description: 输入栅格列表
+parameters:
+  separate: {type: boolean, default: false, description: 每个输入作为独立波段堆叠，而不是镶嵌}
+  resolution: {type: string, enum: [highest, lowest, average], description: 输入分辨率不一致时的取值策略}
+  target_resolution:
+    oneOf:
+      - {type: number, exclusiveMinimum: 0}
+      - {type: array, items: {type: number, exclusiveMinimum: 0}, minItems: 2, maxItems: 2}
+    description: 显式像元大小（优先于 resolution）
+  bbox: {$shared: bbox}
+  resampling: {type: string, enum: [nearest, bilinear, cubic, cubicspline, lanczos, average, mode]}
+  bands:
+    type: array
+    items: {type: integer, minimum: 1}
+    minItems: 1
+    description: 只使用这些输入波段
+  src_nodata: {$shared: nodata}
+  vrt_nodata: {$shared: nodata}
+  add_alpha: {type: boolean, default: false}
+outputs:
+  output_path:
+    kind: file
+    required: true
+    semantic_type: geo:RasterVRT
+    format: VRT
+    constraints: {suffix: .vrt}
+    overwrite: replace
+    commit: atomic
+    description: 输出 .vrt 路径（工作区内）
+execution:
+  mode: sync
+  long_running: false
+  progress: true
+  idempotent: true
+  side_effects: none
+  timeout_seconds: {default: 14400, env: GDAL_COMMAND_TIMEOUT_SECONDS}
+  resources: {cpu: 1, memory_mb: 512}
+validation:
+  pre: [inputs_exist, paths_in_workspace, output_suffix_vrt]
+  post: [output_exists_non_empty, raster_readable]
+errors: [invalid_argument, path_not_allowed, not_found, gdal_unavailable, gdal_timeout, gdal_failed]
+examples:
+  - name: DEM 分幅虚拟镶嵌
+    arguments:
+      data_paths: [/data/dem/srtm/N39E116.hgt, /data/dem/srtm/N39E117.hgt]
+      output_path: /data/out/dem_mosaic.vrt

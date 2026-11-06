@@ -1,0 +1,17 @@
+# SSE for Agent / platform gateway. Stack with docker-compose.yml:
+#   docker compose -f mcp/docker-compose.yml -f mcp/docker-compose.agent.yml \
+#     --profile gdal up -d gdal-tools
+
+services:
+  gdal-tools:
+    ports:
+      - "${GDAL_TOOLS_PORT:-7861}:7861"
+    environment:
+      MCP_TRANSPORT: sse
+      GDAL_TOOLS_HOST: 0.0.0.0
+      GDAL_TOOLS_PORT: "7861"
+      FASTMCP_HOST: 0.0.0.0
+      FASTMCP_PORT: "7861"
+    command: ["serve-mcp", "--transport", "sse", "--host", "0.0.0.0", "--port", "7861"]
+    stdin_open: false
+    tty: false

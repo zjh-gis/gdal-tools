@@ -1,0 +1,12 @@
+# Copy to docker-compose.override.yml on the production host and adjust paths.
+#
+#   docker compose -f mcp/docker-compose.yml -f mcp/docker-compose.agent.yml \
+#     -f mcp/docker-compose.override.yml --profile gdal up -d gdal-tools --force-recreate
+
+services:
+  gdal-tools:
+    volumes:
+      - ${MCP_DATA:-/data}:/data
+      # Bind extra host trees under the workspace if they are not already inside MCP_DATA:
+      # - /path/on/host/to/gdem:/data/dem/gdem:ro
+      # - /path/on/host/to/srtm:/data/dem/srtm:ro

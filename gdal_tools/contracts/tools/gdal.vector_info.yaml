@@ -1,0 +1,40 @@
+contract_version: "1.0"
+tool:
+  id: gdal.vector_info
+  version: 1.0.0
+  title: 矢量元数据
+  description: 读取矢量数据集的图层、几何类型、CRS、范围与要素数，基于 ogrinfo。
+  category: inspect
+  keywords: [vector, metadata, ogrinfo]
+interfaces:
+  mcp: vector_info
+inputs:
+  data_path:
+    kind: file
+    required: true
+    semantic_type: geo:Vector
+    formats: ["OGR:vector"]
+    access_modes: [local_file]
+    description: 输入矢量路径（工作区内）
+parameters:
+  layer: {type: string, minLength: 1, description: 只描述该图层}
+outputs:
+  metadata:
+    kind: result
+    semantic_type: geo:VectorMetadata
+    description: 结果 outputs.layers 为每个图层的几何类型、要素数、CRS 和范围
+execution:
+  mode: sync
+  long_running: false
+  progress: false
+  idempotent: true
+  side_effects: none
+  timeout_seconds: 600
+  resources: {cpu: 1, memory_mb: 256}
+validation:
+  pre: [input_exists, input_in_workspace]
+  post: []
+errors: [invalid_argument, path_not_allowed, not_found, gdal_unavailable, gdal_timeout, gdal_failed]
+examples:
+  - name: 查看行政区边界
+    arguments: {data_path: /data/boundary/admin.gpkg}

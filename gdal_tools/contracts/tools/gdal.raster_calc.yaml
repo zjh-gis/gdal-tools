@@ -1,0 +1,67 @@
+contract_version: "1.0"
+tool:
+  id: gdal.raster_calc
+  version: 1.0.0
+  title: 波段计算
+  description: >-
+    用 gdal_calc 做波段计算（指数、掩膜、阈值、重分类）。表达式执行前按白名单校验：
+    只允许算术、比较、位运算、已声明的输入字母和 where/sqrt/log/clip 等 numpy 函数。
+  category: raster
+  keywords: [raster, band math, threshold, reclassify, gdal_calc]
+interfaces:
+  mcp: raster_calc
+inputs:
+  inputs:
+    kind: file_map
+    required: true
+    semantic_type: geo:Raster
+    formats: ["GDAL:raster"]
+    access_modes: [local_file]
+    constraints: {keys: 单个大写字母 A-Z, grid: 各输入须为相同网格（或设置 extent）}
+    description: '字母到栅格路径的映射，例如 {"A": "/data/dem.tif"}'
+parameters:
+  expression:
+    type: string
+    minLength: 1
+    maxLength: 1000
+    required: true
+    description: "基于输入字母的 numpy 表达式，例如 where(A > 1000, 1, 0) 或 (B - A) / (B + A)"
+  input_bands:
+    type: object
+    propertyNames: {pattern: "^[A-Z]$"}
+    additionalProperties: {type: integer, minimum: 1}
+    description: '每个字母使用的波段（缺省 1），例如 {"A": 3}'
+  output_type: {$shared: data_type, default: Float32}
+  cast_inputs_to_float: {type: boolean, description: 用 float64() 包裹输入以避免整数溢出（Float 输出时缺省开启）}
+  no_data_value: {$shared: nodata}
+  extent: {type: string, enum: [ignore, fail, union, intersect], description: 输入范围不一致时的处理方式}
+  creation_options: {$shared: creation_options}
+outputs:
+  output_path:
+    kind: file
+    required: true
+    semantic_type: geo:Raster
+    format: GTiff
+    data_type: "= output_type"
+    overwrite: replace
+    commit: atomic_when_geotiff
+    description: 输出栅格路径（工作区内，推荐 .tif）
+execution:
+  mode: sync
+  long_running: true
+  progress: true
+  idempotent: true
+  side_effects: none
+  timeout_seconds: {default: 14400, env: GDAL_COMMAND_TIMEOUT_SECONDS}
+  resources: {cpu: 1, memory_mb: 2048, scratch_disk: 约等于输出大小}
+validation:
+  pre: [inputs_exist, paths_in_workspace, expression_whitelisted, input_names_single_letter]
+  post: [output_exists_non_empty, raster_readable]
+errors: [invalid_argument, path_not_allowed, not_found, gdal_unavailable, gdal_timeout, gdal_failed]
+examples:
+  - name: 高程大于 1000 米的掩膜
+    arguments:
+      inputs: {A: /data/dem/gdem/ASTGTMV003_N39E116_dem.tif}
+      expression: where(A > 1000, 1, 0)
+      output_type: Byte
+      output_path: /data/out/above_1000m.tif
