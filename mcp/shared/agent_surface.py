@@ -53,30 +53,30 @@ def register_agent_surface(mcp: Any, pkg_root: Path) -> None:
 
     if (mcp_dir / "capability_classes.yaml").is_file():
 
-        @mcp.resource("mineral://capability-classes")
+        @mcp.resource("gdal-tools://capability-classes")
         def capability_classes() -> str:
             return _read_if_exists(mcp_dir / "capability_classes.yaml")
 
     if (metadata_dir / "tools_metadata.yaml").is_file():
 
-        @mcp.resource("mineral://tools-metadata")
+        @mcp.resource("gdal-tools://tools-metadata")
         def tools_metadata() -> str:
             return _read_if_exists(metadata_dir / "tools_metadata.yaml")
 
     if (metadata_dir / "capabilities.yaml").is_file():
 
-        @mcp.resource("mineral://capabilities-vocabulary")
+        @mcp.resource("gdal-tools://capabilities")
         def capabilities_vocabulary() -> str:
             return _read_if_exists(metadata_dir / "capabilities.yaml")
 
     if (metadata_dir / "execution_policies.yaml").is_file():
 
-        @mcp.resource("mineral://execution-policies")
+        @mcp.resource("gdal-tools://execution-policies")
         def execution_policies() -> str:
             return _read_if_exists(metadata_dir / "execution_policies.yaml")
 
     if (metadata_dir / "environments.yaml").is_file():
 
-        @mcp.resource("mineral://environments")
+        @mcp.resource("gdal-tools://environments")
         def environments_catalog() -> str:
             return _read_if_exists(metadata_dir / "environments.yaml")

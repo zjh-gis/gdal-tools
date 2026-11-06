@@ -1,9 +1,8 @@
-server_id: gdal-tools-mcp
-version: "0.2.0"
-environment_id: sciasset://mineral-tools-mcp/environment/gdal-gis
+server_id: gdal-tools
+version: "1.0.0"
+environment_id: gdal-tools://environment/gdal
 description: GDAL/OGR MCP adapter for gdal-tools (algorithms in gdal_tools.core)
 domain:
-  - mineral_exploration
   - gis
   - remote_sensing
 tools:
@@ -12,12 +11,12 @@ tools:
     capability: [raster_info]
     call_mode: executable
     long_running: false
-  - id: gdal.translate
+  - id: gdal.raster_convert
     mcp_name: raster_convert
     capability: [raster_convert]
     call_mode: executable
     long_running: true
-  - id: gdal.warp
+  - id: gdal.raster_warp
     mcp_name: raster_warp
     capability: [raster_reproject, raster_clip, raster_resample, raster_mosaic]
     call_mode: executable
@@ -47,7 +46,7 @@ tools:
     capability: [contour_extract]
     call_mode: executable
     long_running: true
-  - id: gdal.build_vrt
+  - id: gdal.raster_build_vrt
     mcp_name: raster_build_vrt
     capability: [raster_mosaic]
     call_mode: executable
@@ -57,12 +56,12 @@ tools:
     capability: [raster_calculate]
     call_mode: executable
     long_running: true
-  - id: gdal.polygonize
+  - id: gdal.raster_polygonize
     mcp_name: raster_polygonize
     capability: [raster_polygonize]
     call_mode: executable
     long_running: true
-  - id: gdal.overviews
+  - id: gdal.raster_overviews
     mcp_name: raster_overviews
     capability: [raster_overviews]
     call_mode: executable

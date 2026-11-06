@@ -1,0 +1,31 @@
+# 生产启动入口。在仓库根目录执行：
+#   export MCP_DATA=/path/to/host/data
+#   docker compose -f deploy/docker-compose.yml up --build -d
+#
+# 容器内 /data 就是宿主机 $MCP_DATA；输入和输出都必须在这块盘上。
+
+name: gdal-tools
+
+services:
+  gdal-tools:
+    build:
+      context: ..
+      dockerfile: docker/gdal.Dockerfile
+      args:
+        PYTHON_IMAGE: ${PYTHON_IMAGE:-docker.1ms.run/python:3.11-slim}
+    image: gdal-tools:1.0
+    container_name: gdal-tools
+    ports:
+      - "${GDAL_TOOLS_PORT:-7861}:7861"
+    environment:
+      GDAL_TOOLS_WORKSPACES: /data
+      PYTHONPATH: /app/gdal-tools:/app/gdal-tools/mcp
+      MCP_TRANSPORT: sse
+      GDAL_TOOLS_HOST: 0.0.0.0
+      GDAL_TOOLS_PORT: "7861"
+      FASTMCP_HOST: 0.0.0.0
+      FASTMCP_PORT: "7861"
+    volumes:
+      - ${MCP_DATA:-../data}:/data
+    command: ["serve-mcp", "--transport", "sse", "--host", "0.0.0.0", "--port", "7861"]
+    restart: unless-stopped

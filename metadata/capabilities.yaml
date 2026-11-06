@@ -1,746 +1,159 @@
-version: '0.2'
-description: Canonical atomic capability vocabulary for GeoInvoke. Benchmark Gold must use only capabilities.*.
-  deprecated.* may appear in legacy tool metadata and resolver mappings, but not in Gold.
+version: "1.0"
+description: >
+  gdal-tools 的原子能力词表。只覆盖本包已发布工具。
+  权威契约在 gdal_tools/contracts/tools/*.yaml。
 _meta:
-  owner: geoinvoke
-  atomic_tier_field: capability_id
-  family_tier_field: family
-  family_used_in_ranking: false
-  scorer_uses: canonical capability ids only for Gold and required_capabilities
-  deprecated_policy: >
-    deprecated.replacement is migration metadata for CI/audit only.
-    Query capability resolver MUST NOT expand deprecated ids into multiple
-    required_capabilities.
-  gold_policy: capability_gold.required must be canonical only (not deprecated)
+  owner: gdal-tools
+  environment_id: gdal-tools://environment/gdal
 capabilities:
-  alteration_detection:
-    label: alteration detection
-    family: analyze
-    typical_input_types:
-    - multispectral_raster
-    typical_output_types:
-    - alteration_anomaly
-    example_tools:
-    - alteration_extraction
-  analytic_signal:
-    label: analytic signal
-    family: transform
-    typical_input_types: []
-    typical_output_types: []
-    example_tools:
-    - geophysics_analytic_signal
-  assay_stats:
-    label: assay stats
-    family: analyze
-    typical_input_types: []
-    typical_output_types: []
-    example_tools:
-    - assay_descriptive_stats
-  buffer_overlap:
-    label: buffer overlap
-    family: analyze
-    typical_input_types: []
-    typical_output_types: []
-    example_tools:
-    - uncertainty_buffer_overlap
-  contour_extract:
-    label: contour extract
-    family: analyze
-    typical_input_types: []
-    typical_output_types: []
-    example_tools:
-    - spatial_contour_extract
-    - gdal.dem_contour
-  coordinate_transform:
-    label: coordinate transform
-    family: transform
-    typical_input_types:
-    - vector
-    typical_output_types:
-    - vector
-    example_tools:
-    - gis_coordinate_transform
-  dem_slope:
-    label: dem slope
-    family: analyze
-    typical_input_types:
-    - raster
-    typical_output_types:
-    - raster
-    example_tools:
-    - gdal.dem_slope
-  dem_aspect:
-    label: dem aspect
-    family: analyze
-    definition: Downslope direction of each DEM cell in degrees.
-    typical_input_types:
-    - raster
-    typical_output_types:
-    - raster
-    example_tools:
-    - gdal.dem_aspect
-  dem_hillshade:
-    label: dem hillshade
-    family: analyze
-    definition: Shaded-relief rendering of a DEM for a given light direction.
-    typical_input_types:
-    - raster
-    typical_output_types:
-    - raster
-    example_tools:
-    - gdal.dem_hillshade
-  terrain_index:
-    label: terrain index
-    family: analyze
-    definition: Terrain ruggedness (TRI), topographic position (TPI) or roughness from a DEM.
-    typical_input_types:
-    - raster
-    typical_output_types:
-    - raster
-    example_tools:
-    - gdal.dem_terrain_index
-  document_parse:
-    label: document parse
-    family: inspect
-    typical_input_types:
-    - document
-    typical_output_types:
-    - document
-    example_tools:
-    - document_parse
-  drillhole_cleaning:
-    label: drillhole cleaning
-    family: transform
-    typical_input_types: []
-    typical_output_types: []
-    example_tools:
-    - drillhole_cleaning
-  drillhole_composite:
-    label: drillhole composite
-    family: transform
-    typical_input_types: []
-    typical_output_types: []
-    example_tools:
-    - drillhole_composite
-  drillhole_validate:
-    label: drillhole validate
-    family: analyze
-    typical_input_types: []
-    typical_output_types: []
-    example_tools:
-    - drillhole_from_to_validate
-  element_combination:
-    label: element combination
-    family: analyze
-    typical_input_types:
-    - geochemical_table
-    typical_output_types:
-    - element_combination_result
-    example_tools:
-    - element_combination
-    - geochem_au_bi_as
-    - geochem_element_combination
-  element_correlation:
-    label: element correlation
-    family: analyze
-    typical_input_types: []
-    typical_output_types: []
-    example_tools:
-    - geochem_correlation
-  evidence_align:
-    label: evidence align
-    family: transform
-    typical_input_types: []
-    typical_output_types: []
-    example_tools:
-    - geophysics_grid_align
-  evidence_reclass:
-    label: evidence reclass
-    family: transform
-    typical_input_types: []
-    typical_output_types: []
-    example_tools:
-    - geophysics_evidence_reclass
-  evidence_stack:
-    label: evidence stack
-    family: transform
-    typical_input_types: []
-    typical_output_types: []
-    example_tools:
-    - geophysics_evidence_stack
-  evidence_vectorize:
-    label: evidence vectorize
-    family: transform
-    typical_input_types: []
-    typical_output_types: []
-    example_tools:
-    - geophysics_anomaly_vectorize
-  geochemical_anomaly_detection:
-    label: geochemical anomaly detection
-    family: analyze
-    typical_input_types:
-    - geochemical_table
-    typical_output_types:
-    - geochemical_anomaly
-    example_tools:
-    - geochem_anomaly
-    - geochem_anomaly_threshold
-    - geochem_mean_std_anomaly
-    - geochem_quantile_anomaly
-  geochemical_anomaly_mapping:
-    label: geochemical anomaly mapping
-    family: analyze
-    typical_input_types: []
-    typical_output_types: []
-    example_tools:
-    - geochem_anomaly_map
-  geochemical_data_cleaning:
-    label: geochemical data cleaning
-    family: transform
-    typical_input_types:
-    - geochemical_table
-    typical_output_types:
-    - geochemical_table
-    example_tools:
-    - geochem_cleaning
-  geochemical_descriptive_statistics:
-    label: geochemical descriptive statistics
-    family: analyze
-    typical_input_types: []
-    typical_output_types: []
-    example_tools:
-    - geochem_descriptive_stats
-  geophysical_anomaly_detection:
-    label: geophysical anomaly detection
-    family: analyze
-    typical_input_types:
-    - geophysical_table
-    typical_output_types:
-    - geophysical_anomaly
-    example_tools:
-    - geophysics_anomaly
-    - geophysics_anomaly_raster
-    - geophysics_cn_criterion
-    - geophysics_cumulative_frequency
-    - geophysics_mean_std_anomaly
-  geophysical_anomaly_raster:
-    label: geophysical anomaly raster
-    family: analyze
-    typical_input_types: []
-    typical_output_types: []
-    example_tools:
-    - geophysics_anomaly_raster
-  geophysical_evidence_layer:
-    label: geophysical evidence layer
-    family: analyze
-    typical_input_types: []
-    typical_output_types: []
-    example_tools:
-    - geophysics_evidence_reclass
-    - geophysics_evidence_stack
-    - geophysics_grid_align
-  geophysical_filter:
-    label: geophysical filter
-    family: transform
-    typical_input_types:
-    - geophysical_grid
-    typical_output_types:
-    - geophysical_grid
-    example_tools:
-    - geophysics_analytic_signal
-    - geophysics_horizontal_derivative
-    - geophysics_upward_continuation
-    - geophysics_vertical_derivative
-    - geophysics_vertical_integral
-  geophysical_grid_io:
-    label: geophysical grid io
-    family: transform
-    typical_input_types: []
-    typical_output_types: []
-    example_tools:
-    - geophysics_grid_project
-    - geophysics_grid_read
-    - geophysics_grid_resample
-    - geophysics_grid_write
-  geophysical_threshold:
-    label: geophysical threshold
-    family: analyze
-    typical_input_types: []
-    typical_output_types: []
-    example_tools:
-    - geophysics_cn_criterion
-    - geophysics_cumulative_frequency
-    - geophysics_mean_std_anomaly
-    - geophysics_quantile_anomaly
-  horizontal_derivative:
-    label: horizontal derivative
-    family: transform
-    typical_input_types: []
-    typical_output_types: []
-    example_tools:
-    - geophysics_horizontal_derivative
-  idw_variance:
-    label: idw variance
-    family: analyze
-    typical_input_types: []
-    typical_output_types: []
-    example_tools:
-    - uncertainty_idw_variance
-  info_extract:
-    label: info extract
-    family: analyze
-    typical_input_types:
-    - document
-    typical_output_types:
-    - table
-    example_tools:
-    - info_extract
-  interactive_segmentation:
-    label: interactive segmentation
-    family: analyze
-    typical_input_types:
-    - remote_sensing_raster
-    typical_output_types:
-    - segmentation_mask
-    example_tools:
-    - sam_segment
-  interpolation_grid:
-    label: interpolation grid
-    family: analyze
-    typical_input_types: []
-    typical_output_types: []
-    example_tools:
-    - spatial_interpolation_grid
-  lineament_extraction:
-    label: lineament extraction
-    family: analyze
-    typical_input_types:
-    - remote_sensing_raster
-    typical_output_types:
-    - lineament_vector
-    example_tools:
-    - lineament_extraction
-  literature_search:
-    label: literature search
-    family: inspect
-    typical_input_types:
-    - document
-    typical_output_types:
-    - literature
-    example_tools:
-    - literature_search
-  map_assist:
-    label: map assist
-    family: inspect
-    typical_input_types:
-    - georeferenced_map
-    typical_output_types:
-    - map_assist_result
-    example_tools:
-    - map_assist
-  multisource_consistency:
-    label: multisource consistency
-    family: analyze
-    typical_input_types: []
-    typical_output_types: []
-    example_tools:
-    - uncertainty_multisource_consistency
-  object_detection:
-    label: object detection
-    family: analyze
-    typical_input_types:
-    - remote_sensing_raster
-    typical_output_types:
-    - detection_boxes
-    example_tools:
-    - object_detection
-  prospectivity_evidence_weights:
-    label: prospectivity evidence weights
-    family: analyze
-    typical_input_types: []
-    typical_output_types: []
-    example_tools:
-    - prospectivity_evidence_weights
-  prospectivity_mapping:
-    label: prospectivity mapping
-    family: analyze
-    typical_input_types: []
-    typical_output_types: []
-    example_tools:
-    - prospectivity_evidence_weights
-    - prospectivity_wofe
-  prospectivity_wofe:
-    label: prospectivity wofe
-    family: analyze
-    typical_input_types: []
-    typical_output_types: []
-    example_tools:
-    - prospectivity_wofe
-  qaqc_blank:
-    label: qaqc blank
-    family: analyze
-    typical_input_types: []
-    typical_output_types: []
-    example_tools:
-    - qaqc_blank_check
-  qaqc_duplicate:
-    label: qaqc duplicate
-    family: analyze
-    typical_input_types: []
-    typical_output_types: []
-    example_tools:
-    - qaqc_duplicate_rpd
-  qaqc_reliability:
-    label: qaqc reliability
-    family: analyze
-    typical_input_types: []
-    typical_output_types: []
-    example_tools:
-    - qaqc_anomaly_reliability
-  qaqc_standard:
-    label: qaqc standard
-    family: analyze
-    typical_input_types: []
-    typical_output_types: []
-    example_tools:
-    - qaqc_standard_recovery
-  raster_clip:
-    label: raster clip
-    family: transform
-    definition: Crop a raster by bbox or vector cutline without requiring a CRS change.
-    typical_input_types:
-    - raster
-    typical_output_types:
-    - raster
-    example_tools:
-    - gdal.warp
-  raster_calculate:
-    label: raster calculate
-    family: transform
-    definition: >
-      Per-pixel band math over one or more rasters (indices, masks, thresholds,
-      reclassification). Named spectral indices with a dedicated tool stay spectral_index.
-    typical_input_types:
-    - raster
-    typical_output_types:
-    - raster
-    example_tools:
-    - gdal.raster_calc
-  raster_convert:
-    label: raster convert
-    family: transform
-    typical_input_types:
-    - raster
-    typical_output_types:
-    - raster
-    example_tools:
-    - gdal.translate
   raster_info:
-    label: raster info
+    label: 栅格元数据
     family: inspect
-    typical_input_types:
-    - raster
-    typical_output_types:
-    - metadata
-    example_tools:
-    - gdal.raster_info
-  raster_mosaic:
-    label: raster mosaic
-    family: transform
-    typical_input_types:
-    - raster
-    typical_output_types:
-    - raster
-    example_tools:
-    - gdal.warp
-    - gdal.build_vrt
-  raster_overviews:
-    label: raster overviews
-    family: transform
-    definition: Build or remove reduced-resolution pyramids for faster display of large rasters.
-    typical_input_types:
-    - raster
-    typical_output_types:
-    - raster
-    example_tools:
-    - gdal.overviews
-  raster_polygonize:
-    label: raster polygonize
-    family: transform
-    definition: Convert connected regions of equal pixel value into vector polygons.
-    typical_input_types:
-    - raster
-    typical_output_types:
-    - vector
-    example_tools:
-    - gdal.polygonize
-  raster_reproject:
-    label: raster reproject
-    family: transform
-    definition: >
-      Change the output coordinate reference system (CRS). Same-CRS grid
-      resampling is NOT raster_reproject; use raster_resample.
-    typical_input_types:
-    - raster
-    typical_output_types:
-    - raster
-    example_tools:
-    - gdal.warp
-  raster_resample:
-    label: raster resample
-    family: transform
-    definition: >
-      Change pixel size / grid sampling. Does not imply changing CRS.
-      Same-CRS resampling stays raster_resample even if implemented via warp/reproject APIs.
-    typical_input_types:
-    - raster
-    typical_output_types:
-    - raster
-    example_tools:
-    - gis_raster_resampling
-    - gdal.warp
-  semantic_segmentation:
-    label: semantic segmentation
-    family: analyze
-    typical_input_types:
-    - remote_sensing_raster
-    typical_output_types:
-    - segmentation_mask
-    example_tools:
-    - semantic_segmentation
-  spatial_interpolation:
-    label: spatial interpolation
-    family: analyze
-    typical_input_types: []
-    typical_output_types: []
-    example_tools:
-    - spatial_contour_extract
-    - spatial_interpolation_grid
-  spatial_overlay:
-    label: spatial overlay
-    family: analyze
-    typical_input_types:
-    - vector
-    typical_output_types:
-    - overlay_result
-    example_tools:
-    - gis_overlay
-  spatial_uncertainty:
-    label: spatial uncertainty
-    family: analyze
-    typical_input_types: []
-    typical_output_types: []
-    example_tools:
-    - uncertainty_buffer_overlap
-    - uncertainty_idw_variance
-    - uncertainty_multisource_consistency
-  spectral_index:
-    label: spectral index
-    family: analyze
-    typical_input_types:
-    - multispectral_raster
-    typical_output_types:
-    - vegetation_index_raster
-    example_tools:
-    - vegetation_index
-  upward_continuation:
-    label: upward continuation
-    family: transform
-    typical_input_types: []
-    typical_output_types: []
-    example_tools:
-    - geophysics_upward_continuation
-  vector_area_statistics:
-    label: vector area statistics
-    family: analyze
-    typical_input_types:
-    - vector
-    typical_output_types:
-    - statistics
-    example_tools:
-    - gis_vector_area_stats
-  vector_clip:
-    label: vector clip
-    family: transform
-    typical_input_types:
-    - vector
-    typical_output_types:
-    - vector
-    example_tools:
-    - gis_vector_clip
-  vector_convert:
-    label: vector convert
-    family: transform
-    typical_input_types:
-    - vector
-    typical_output_types:
-    - vector
-    example_tools:
-    - gdal.vector_convert
+    typical_input_types: [raster]
+    typical_output_types: [metadata]
+    example_tools: [gdal.raster_info]
   vector_info:
-    label: vector info
+    label: 矢量元数据
     family: inspect
-    typical_input_types:
-    - vector
-    typical_output_types:
-    - metadata
-    example_tools:
-    - gdal.vector_info
-  vertical_derivative:
-    label: vertical derivative
+    typical_input_types: [vector]
+    typical_output_types: [metadata]
+    example_tools: [gdal.vector_info]
+  raster_convert:
+    label: 栅格格式转换
     family: transform
-    typical_input_types: []
-    typical_output_types: []
-    example_tools:
-    - geophysics_vertical_derivative
-  vertical_integral:
-    label: vertical integral
+    typical_input_types: [raster]
+    typical_output_types: [raster]
+    example_tools: [gdal.raster_convert]
+  raster_reproject:
+    label: 栅格重投影
     family: transform
-    typical_input_types: []
-    typical_output_types: []
-    example_tools:
-    - geophysics_vertical_integral
-deprecated:
-  preprocess:
-    label: Coarse preprocess umbrella (legacy)
+    definition: 改变输出坐标系。同 CRS 下只改像元大小用 raster_resample。
+    typical_input_types: [raster]
+    typical_output_types: [raster]
+    example_tools: [gdal.raster_warp]
+  raster_resample:
+    label: 栅格重采样
     family: transform
-    replacement:
-    - raster_reproject
-    - raster_clip
-    - raster_resample
-    - raster_mosaic
-    notes: Prefer atomic transform capabilities. remote_sensing_preprocess may keep preprocess during
-      migration (CI warning).
+    definition: 改变像元大小/网格，不隐含改 CRS。
+    typical_input_types: [raster]
+    typical_output_types: [raster]
+    example_tools: [gdal.raster_warp]
+  raster_clip:
+    label: 栅格裁剪
+    family: transform
+    definition: 按 bbox 或矢量边界裁剪栅格。
+    typical_input_types: [raster]
+    typical_output_types: [raster]
+    example_tools: [gdal.raster_warp]
+  raster_mosaic:
+    label: 栅格镶嵌
+    family: transform
+    typical_input_types: [raster]
+    typical_output_types: [raster]
+    example_tools: [gdal.raster_warp, gdal.raster_build_vrt]
+  raster_calculate:
+    label: 栅格波段计算
+    family: transform
+    definition: 逐像元波段运算（指数、掩膜、阈值、重分类）。
+    typical_input_types: [raster]
+    typical_output_types: [raster]
+    example_tools: [gdal.raster_calc]
+  raster_overviews:
+    label: 栅格金字塔
+    family: transform
+    typical_input_types: [raster]
+    typical_output_types: [raster]
+    example_tools: [gdal.raster_overviews]
+  raster_polygonize:
+    label: 栅格转面
+    family: transform
+    typical_input_types: [raster]
+    typical_output_types: [vector]
+    example_tools: [gdal.raster_polygonize]
+  dem_slope:
+    label: DEM 坡度
+    family: analyze
+    typical_input_types: [dem]
+    typical_output_types: [raster]
+    example_tools: [gdal.dem_slope]
+  dem_aspect:
+    label: DEM 坡向
+    family: analyze
+    typical_input_types: [dem]
+    typical_output_types: [raster]
+    example_tools: [gdal.dem_aspect]
+  dem_hillshade:
+    label: DEM 山体阴影
+    family: analyze
+    typical_input_types: [dem]
+    typical_output_types: [raster]
+    example_tools: [gdal.dem_hillshade]
+  terrain_index:
+    label: DEM 地形指数
+    family: analyze
+    definition: TRI / TPI / roughness。
+    typical_input_types: [dem]
+    typical_output_types: [raster]
+    example_tools: [gdal.dem_terrain_index]
+  contour_extract:
+    label: DEM 等值线
+    family: analyze
+    typical_input_types: [dem]
+    typical_output_types: [vector]
+    example_tools: [gdal.dem_contour]
+  vector_convert:
+    label: 矢量格式转换
+    family: transform
+    typical_input_types: [vector]
+    typical_output_types: [vector]
+    example_tools: [gdal.vector_convert]
+  coordinate_transform:
+    label: 矢量重投影
+    family: transform
+    typical_input_types: [vector]
+    typical_output_types: [vector]
+    example_tools: [gdal.vector_convert]
 capability_families:
-  analyze:
-    atomic_ids:
-    - alteration_detection
-    - assay_stats
-    - buffer_overlap
-    - contour_extract
-    - dem_aspect
-    - dem_hillshade
-    - dem_slope
-    - drillhole_validate
-    - element_combination
-    - element_correlation
-    - geochemical_anomaly_detection
-    - geochemical_anomaly_mapping
-    - geochemical_descriptive_statistics
-    - geophysical_anomaly_detection
-    - geophysical_anomaly_raster
-    - geophysical_evidence_layer
-    - geophysical_threshold
-    - idw_variance
-    - info_extract
-    - interactive_segmentation
-    - interpolation_grid
-    - lineament_extraction
-    - multisource_consistency
-    - object_detection
-    - prospectivity_evidence_weights
-    - prospectivity_mapping
-    - prospectivity_wofe
-    - qaqc_blank
-    - qaqc_duplicate
-    - qaqc_reliability
-    - qaqc_standard
-    - semantic_segmentation
-    - spatial_interpolation
-    - spatial_overlay
-    - spatial_uncertainty
-    - spectral_index
-    - terrain_index
-    - vector_area_statistics
   inspect:
-    atomic_ids:
-    - document_parse
-    - literature_search
-    - map_assist
-    - raster_info
-    - vector_info
+    atomic_ids: [raster_info, vector_info]
   transform:
     atomic_ids:
-    - analytic_signal
-    - coordinate_transform
-    - drillhole_cleaning
-    - drillhole_composite
-    - evidence_align
-    - evidence_reclass
-    - evidence_stack
-    - evidence_vectorize
-    - geochemical_data_cleaning
-    - geophysical_filter
-    - geophysical_grid_io
-    - horizontal_derivative
-    - raster_calculate
-    - raster_clip
-    - raster_convert
-    - raster_mosaic
-    - raster_overviews
-    - raster_polygonize
-    - raster_reproject
-    - raster_resample
-    - upward_continuation
-    - vector_clip
-    - vector_convert
-    - vertical_derivative
-    - vertical_integral
+      - raster_convert
+      - raster_reproject
+      - raster_resample
+      - raster_clip
+      - raster_mosaic
+      - raster_calculate
+      - raster_overviews
+      - raster_polygonize
+      - vector_convert
+      - coordinate_transform
+  analyze:
+    atomic_ids:
+      - dem_slope
+      - dem_aspect
+      - dem_hillshade
+      - terrain_index
+      - contour_extract
 operation_capability_resolver:
-  reproject:
-    raster:
-    - raster_reproject
-    vector:
-    - coordinate_transform
-  resample:
-    raster:
-    - raster_resample
-  clip:
-    raster:
-    - raster_clip
-    vector:
-    - vector_clip
-  convert:
-    raster:
-    - raster_convert
-    vector:
-    - vector_convert
-  overlay:
-    vector:
-    - spatial_overlay
-  calculate:
-    raster:
-    - spectral_index
-  detect:
-    raster:
-    - object_detection
-  segment:
-    raster:
-    - semantic_segmentation
-    - interactive_segmentation
-  extract_lineament:
-    raster:
-    - lineament_extraction
   inspect_metadata:
-    raster:
-    - raster_info
-    vector:
-    - vector_info
-    map:
-    - map_assist
-    document:
-    - literature_search
-  aggregate:
-    vector:
-    - vector_area_statistics
-    table:
-    - element_combination
-  anomaly_detection:
-    raster:
-    - alteration_detection
-    table:
-    - geochemical_anomaly_detection
-    - geophysical_anomaly_detection
-  # preprocess is deprecated family-level operation — DO NOT expand to atomic
-  # capabilities here. Resolver returns ambiguous/empty for coarse preprocess.
-  # See deprecated.preprocess.replacement for migration hints only.
+    raster: [raster_info]
+    vector: [vector_info]
+  convert:
+    raster: [raster_convert]
+    vector: [vector_convert]
+  reproject:
+    raster: [raster_reproject]
+    vector: [coordinate_transform]
+  resample:
+    raster: [raster_resample]
+  clip:
+    raster: [raster_clip]
+  mosaic:
+    raster: [raster_mosaic]
+  calculate:
+    raster: [raster_calculate]
+  polygonize:
+    raster: [raster_polygonize]
+  terrain:
+    raster: [dem_slope, dem_aspect, dem_hillshade, terrain_index, contour_extract]

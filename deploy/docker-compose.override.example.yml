@@ -1,0 +1,15 @@
+# 复制为 docker-compose.override.yml 后按生产路径改。
+#
+#   cp deploy/docker-compose.override.example.yml deploy/docker-compose.override.yml
+#   docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.override.yml \
+#     up -d --force-recreate
+#
+# override.yml 不要提交；里面是本机路径。
+
+services:
+  gdal-tools:
+    volumes:
+      - ${MCP_DATA:-/data}:/data
+      # 若业务数据不在 MCP_DATA 目录树内，再额外挂进来：
+      # - /path/on/host/to/gdem:/data/dem/gdem:ro
+      # - /path/on/host/to/srtm:/data/dem/srtm:ro

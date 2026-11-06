@@ -1,166 +1,70 @@
-version: '0.1'
-description: 'Shared runtime environments for mineral-tools-mcp tools and MCP servers. Tools declare environment_id; agents
-  must connect to the MCP server (or container) that provides that environment. One server process = one environment profile.
-  Each environment tool_ids list is the authoritative set of tools that MUST be callable on that MCP Server (same ids as mcp/*/metadata.yaml).
-  Do not list handoff-only or not-yet-exposed tools here.
+version: "1.0"
+description: >
+  gdal-tools 的运行环境。本包只有一个镜像、一个环境、一个 MCP 服务。
+  输入读取和结果写入都只允许在挂载工作区（容器内 /data，宿主机 MCP_DATA）内。
 
-  '
 environments:
-- id: sciasset://mineral-tools-mcp/environment/gdal-gis
-  slug: gdal-gis
-  name: GDAL/GIS 栅矢量空间底座
-  mcp_server_id: gdal-tools-mcp
-  docker:
-    compose_profile: gdal
-    dockerfile: docker/gdal.Dockerfile
-    base_dockerfile: docker/base.Dockerfile
-    image: mineral-tools/gdal-tools-mcp:dev
-  includes:
-    system:
-    - gdal-bin
-    - python3-gdal
-    - proj
-    - geos
-    python:
-    - rasterio
-    - geopandas
-    - pyogrio
-    - pyproj
-  tool_id_prefixes:
-  - gdal.
-  tool_ids:
-  - gdal.raster_info
-  - gdal.translate
-  - gdal.warp
-  - gdal.dem_slope
-  - gdal.dem_aspect
-  - gdal.dem_hillshade
-  - gdal.dem_terrain_index
-  - gdal.dem_contour
-  - gdal.build_vrt
-  - gdal.raster_calc
-  - gdal.polygonize
-  - gdal.overviews
-  - gdal.vector_info
-  - gdal.vector_convert
-  notes: MCP tools raster_info, raster_convert, raster_warp, raster_build_vrt, raster_calc, raster_polygonize, raster_overviews,
-    dem_slope, dem_aspect, dem_hillshade, dem_terrain_index, dem_contour, vector_info, vector_convert (+ gdal_status). raster_warp
-    is the only raster-clip-by-vector tool. Long jobs run in worker threads and stream MCP progress; GDAL_MCP_MAX_CONCURRENT_JOBS
-    caps concurrency.
-- id: sciasset://mineral-tools-mcp/environment/mineral-python
-  slug: mineral-python
-  name: 矿产勘查核心 Python 服务环境
-  mcp_server_id: mineral-core-mcp
-  docker:
-    compose_profile: mineral
-    dockerfile: docker/mineral-core.Dockerfile
-    base_dockerfile: docker/base.Dockerfile
-    image: mineral-tools/mineral-core-mcp:dev
-  includes:
-    system:
-    - gdal-bin
-    python:
-    - pandas
-    - numpy
-    - rasterio
-    - scipy
-    - requirements.txt
-  tool_ids:
-  - geochem_anomaly
-  - geochem_cleaning
-  - element_combination
-  - alteration_extraction
-  - lineament_extraction
-  - vegetation_index
-  - prospectivity_wofe
-  - geophysics_filter
-  - assay_descriptive_stats
-  - drillhole_cleaning
-  - drillhole_composite
-  - drillhole_from_to_validate
-  - geochem_anomaly_map
-  - geochem_anomaly_threshold
-  - geochem_au_bi_as
-  - geochem_correlation
-  - geochem_descriptive_stats
-  - geochem_element_combination
-  - geochem_mean_std_anomaly
-  - geochem_quantile_anomaly
-  - geophysics_analytic_signal
-  - geophysics_anomaly
-  - geophysics_anomaly_raster
-  - geophysics_anomaly_vectorize
-  - geophysics_cn_criterion
-  - geophysics_cumulative_frequency
-  - geophysics_evidence_reclass
-  - geophysics_evidence_stack
-  - geophysics_grid_align
-  - geophysics_grid_project
-  - geophysics_grid_read
-  - geophysics_grid_resample
-  - geophysics_grid_write
-  - geophysics_horizontal_derivative
-  - geophysics_mean_std_anomaly
-  - geophysics_quantile_anomaly
-  - geophysics_upward_continuation
-  - geophysics_vertical_derivative
-  - geophysics_vertical_integral
-  - gis_coordinate_transform
-  - gis_overlay
-  - gis_raster_resampling
-  - gis_vector_area_stats
-  - gis_vector_clip
-  - map_assist
-  - prospectivity_evidence_weights
-  - qaqc_anomaly_reliability
-  - qaqc_blank_check
-  - qaqc_duplicate_rpd
-  - qaqc_standard_recovery
-  - remote_sensing_preprocess
-  - spatial_contour_extract
-  - spatial_interpolation_grid
-  - uncertainty_buffer_overlap
-  - uncertainty_idw_variance
-  - uncertainty_multisource_consistency
-  notes: 与 mineral-core-mcp MCP tools/list 及 mcp/mineral-core-mcp/metadata.yaml 一致；含 manifest 驱动与 REST registry 桥接工具。
-- id: sciasset://mineral-tools-mcp/environment/geophysics-harmonica
-  slug: geophysics-harmonica
-  name: 重磁 Harmonica 网格处理环境
-  mcp_server_id: harmonica-mcp
-  docker:
-    compose_profile: harmonica
-    dockerfile: docker/harmonica.Dockerfile
-    base_dockerfile: docker/base.Dockerfile
-    image: mineral-tools/harmonica-mcp:dev
-  includes:
-    system:
-    - gdal-bin
-    - proj
-    python:
-    - numpy
-    - xarray
-    - rasterio
-    - harmonica
-    - verde
-  tool_ids:
-  - harmonica.upward_continuation
-  - harmonica.reduction_to_pole
-  - harmonica.bouguer_correction
-  notes: '官方 Docker 镜像已安装 harmonica。未安装依赖时不要启动本 Server； tool_ids 中的算子均应在 tools/list 中可调用（不可执行则不注册、不列入）。
+  - id: gdal-tools://environment/gdal
+    slug: gdal
+    name: GDAL/OGR 栅格、矢量与 DEM
+    mcp_server_id: gdal-tools
+    docker:
+      compose: deploy/docker-compose.yml
+      dockerfile: docker/gdal.Dockerfile
+      image: gdal-tools:1.0
+    includes:
+      system:
+        - gdal-bin
+        - python3-gdal
+        - proj
+        - geos
+      python:
+        - rasterio
+        - geopandas
+        - pyogrio
+        - pyproj
+        - numpy
+        - PyYAML
+        - mcp
+        - pydantic
+    workspace:
+      env: GDAL_TOOLS_WORKSPACES
+      alias: MCP_WORKSPACES
+      default: /data
+      host_volume_env: MCP_DATA
+      description: >
+        容器内工作区根目录。宿主机 MCP_DATA 挂到此处。
+        data_path / output_path 都必须在此根下；没有默认 outputs 子目录。
+    tool_id_prefixes:
+      - gdal.
+    tool_ids:
+      - gdal.raster_info
+      - gdal.raster_convert
+      - gdal.raster_warp
+      - gdal.raster_build_vrt
+      - gdal.raster_calc
+      - gdal.raster_overviews
+      - gdal.raster_polygonize
+      - gdal.dem_slope
+      - gdal.dem_aspect
+      - gdal.dem_hillshade
+      - gdal.dem_terrain_index
+      - gdal.dem_contour
+      - gdal.vector_info
+      - gdal.vector_convert
+    notes: >
+      与 python -m gdal_tools list 及 gdal_tools/contracts/tools/*.yaml 一致。
+      旧别名 gdal.translate / gdal.warp / gdal.build_vrt / gdal.overviews / gdal.polygonize
+      仍可调用，契约 id 以上面列表为准。
+      长任务在 MCP 内并发，上限 GDAL_TOOLS_MAX_CONCURRENT_JOBS。
 
-    '
 defaults:
-  workspace_env_var: MCP_WORKSPACES
+  workspace_env_var: GDAL_TOOLS_WORKSPACES
   pythonpath_env_var: PYTHONPATH
   transport:
     local_dev: stdio
     linux_server: sse
   docker:
-    compose_profile_names:
-    - gdal
-    - mineral
-    - harmonica
-    note: 'Strategy A — compose profile id equals environments.docker.compose_profile. Slugs (gdal-gis, mineral-python, geophysics-harmonica)
-      are human labels only. mcp_server_id names the MCP Server; do not rename compose profiles to mineral-core.
-
-      '
+    compose: deploy/docker-compose.yml
+    image: gdal-tools:1.0
+    port: 7861

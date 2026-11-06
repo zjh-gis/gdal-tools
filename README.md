@@ -31,20 +31,20 @@ cd gdal-tools
 export MCP_DATA=/data2/gis
 
 # 2) 再构建并启动（把 $MCP_DATA 挂到容器内 /data）
-docker compose -f mcp/docker-compose.yml -f mcp/docker-compose.agent.yml \
-  --profile gdal up --build -d gdal-tools
+docker compose -f deploy/docker-compose.yml up --build -d
 ```
 
-未设置 `MCP_DATA` 时，compose 默认挂项目旁的 `../data`，**不是**生产业务盘。  
-若容器已经用错路径建过，改 `MCP_DATA` 后必须加 `--force-recreate` 再 `up` 一次。
+未设置 `MCP_DATA` 时，compose 默认挂仓库内的 `data/`，**不是**生产业务盘。  
+若容器已经用错路径建过，改 `MCP_DATA` 后必须加 `--force-recreate` 再 `up` 一次。  
+若当前容器是旧入口拉起的 `mcp-gdal-tools-1`，停掉后再用 `deploy/` 启动，新容器名是 `gdal-tools`。
 
 - MCP SSE：`http://<主机>:7861/sse`
 - 容器内执行单任务（路径都是容器内 `/data/...`，读写都在挂载盘上）：
 
 ```bash
-docker exec <容器名> python -m gdal_tools list
-docker exec <容器名> python -m gdal_tools describe gdal.dem_slope
-docker exec <容器名> python -m gdal_tools run gdal.dem_slope --args '{
+docker exec gdal-tools python -m gdal_tools list
+docker exec gdal-tools python -m gdal_tools describe gdal.dem_slope
+docker exec gdal-tools python -m gdal_tools run gdal.dem_slope --args '{
   "data_path": "/data/dem/gdem/example.tif",
   "output_path": "/data/outputs/slope.tif",
   "scale": 111120
@@ -61,8 +61,8 @@ docker exec <容器名> python -m gdal_tools run gdal.dem_slope --args '{
    - Agent：连接 MCP SSE，工具名见 `python -m gdal_tools list`
    - 作业调度：`python -m gdal_tools run <tool-id> --args '{...}'`，stdout 为 JSON 信封，退出码对应错误码
 4. 能力发现（在**已启动的容器内**执行，宿主机通常没有 `gdal_tools`）：
-   `docker exec mcp-gdal-tools-1 python -m gdal_tools list`
-   `docker exec mcp-gdal-tools-1 python -m gdal_tools describe --all`
+   `docker exec gdal-tools python -m gdal_tools list`
+   `docker exec gdal-tools python -m gdal_tools describe --all`
    Agent 也可连 MCP SSE 后列工具，资源为 `gdal-tools://contracts`
 
 ## 目录
@@ -72,6 +72,7 @@ docker exec <容器名> python -m gdal_tools run gdal.dem_slope --args '{
 | `gdal_tools/core/` | 算法实现（不依赖 MCP/平台） |
 | `gdal_tools/contracts/` | 机器可读契约 |
 | `gdal_tools/cli.py` | 统一命令行 |
+| `deploy/` | 生产启动（compose、环境变量示例） |
 | `mcp/gdal-tools-mcp/` | MCP 适配（薄封装，转调 `run_tool`） |
 | `docker/gdal.Dockerfile` | 共享运行镜像 |
 
@@ -79,6 +80,7 @@ docker exec <容器名> python -m gdal_tools run gdal.dem_slope --args '{
 
 | 项 | 默认 | 说明 |
 |----|------|------|
+| `MCP_DATA` | 仓库内 `data/` | 宿主机数据盘，compose 挂到容器 `/data`。**必须在 `up` 前设置** |
 | `GDAL_TOOLS_WORKSPACES` | `/data` | 允许读写的根目录（容器内）；对应宿主机挂载盘 `MCP_DATA` |
 | `GDAL_COMMAND_TIMEOUT_SECONDS` | `14400` | 单次 GDAL 命令超时 |
 | `GDAL_TOOLS_MAX_CONCURRENT_JOBS` | `2` | MCP 内并发重任务数 |

@@ -1,41 +1,56 @@
-# GeoInvoke execution policy vocabulary (MVP)
-# Benchmark policy_gold.call_mode must use call_mode enum only.
-# Other flags are independent attributes (avoid combinatorial enums).
-
-version: "0.1"
+version: "1.0"
 description: >
-  Coarse execution policy for retrieval L2 / awareness tasks.
-  Catalog tools_metadata.call_mode values map into call_mode via maps_from.
+  gdal-tools 的执行约定。本包工具全部可在本镜像内直接执行，不转交其他智能体。
+  输入读取和结果写入都只允许在挂载工作区（容器内 /data，宿主机 MCP_DATA）内。
+
+environment_id: gdal-tools://environment/gdal
 
 call_mode:
   executable:
-    label: Tool may be selected and executed for this request
-    maps_from:
-      - lightweight_service
-      - indexed_or_lightweight_service
-  handoff:
-    label: Request should not execute a tool; handoff / refuse fabrication
-    maps_from:
-      - indexed_or_handoff
-      - handoff_to_simulation_agent
-      - handoff_to_experiment_agent
-      - handoff_to_simulation_or_experiment_agent
-      - handoff_to_knowledge_resource_task
+    label: 在本镜像内直接执行
+    description: 本包全部工具都是 executable，没有 handoff。
 
-# Independent attributes (bool on ToolSpec / policy_gold); not part of call_mode enum
+execution:
+  mode: sync
+  interfaces: [cli, mcp]
+  workspace:
+    env: GDAL_TOOLS_WORKSPACES
+    alias: MCP_WORKSPACES
+    default: /data
+    host_volume_env: MCP_DATA
+    rule: data_path / output_path 等文件参数必须在工作区根下；不传 output_path 会报错，不会默认写到 outputs/
+  timeout:
+    inspect_seconds: 600
+    compute_seconds: 14400
+    env: GDAL_COMMAND_TIMEOUT_SECONDS
+  concurrency:
+    env: GDAL_TOOLS_MAX_CONCURRENT_JOBS
+    default: 2
+    applies_to: MCP 内 long_running 任务
+  overwrite:
+    default: false
+    on_conflict: 输出已存在且 overwrite=false 时返回 output_exists
+  commit:
+    geotiff: 先写临时文件再替换，避免半成品
+  progress: long_running 工具通过 MCP 上报进度
+
 attributes:
-  - destructive
-  - requires_confirmation
-  - long_running
+  long_running:
+    description: 计算类工具为 true；raster_info / vector_info 为 false
+    tools_false: [gdal.raster_info, gdal.vector_info]
+  idempotent:
+    description: 相同输入与参数应得到相同输出文件
+    default: true
+  in_place:
+    description: 仅 gdal.raster_overviews 在 external=false 时原地改输入文件
+    tools: [gdal.raster_overviews]
 
-gold_policy:
-  # Gold MUST write canonical enum values only.
-  call_mode_allowed: [executable, handoff]
-  # Read-time aliases for legacy docs / GeoAwareness decision labels — NOT valid Gold enum.
-  call_mode_aliases:
-    handoff_required: handoff
-    executable: executable
-  notes: >
-    policy_gold.call_mode uses call_mode enum (executable | handoff).
-    Do not write handoff_required as Gold call_mode; that string is an agent status /
-    GeoAwareness decision label, not the retrieval policy enum.
+errors:
+  invalid_argument: {exit_code: 2, retryable: false}
+  path_not_allowed: {exit_code: 3, retryable: false}
+  not_found: {exit_code: 4, retryable: false}
+  output_exists: {exit_code: 5, retryable: false}
+  gdal_unavailable: {exit_code: 10, retryable: false}
+  gdal_timeout: {exit_code: 11, retryable: true}
+  gdal_failed: {exit_code: 12, retryable: false}
+  internal_error: {exit_code: 1, retryable: false}

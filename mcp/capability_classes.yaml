@@ -1,41 +1,34 @@
-# P0 capability classes exposed via MCP (for ≥10-class accounting)
+# 本包 MCP 对外能力分组。server 与 mcp/gdal-tools-mcp/metadata.yaml 一致。
 
 classes:
+  - id: raster_inspect
+    server: gdal-tools
+    tools: [raster_info]
   - id: raster_transform
-    server: gdal-tools-mcp
-    tools: [raster_info, raster_convert, raster_warp, dem_slope]
+    server: gdal-tools
+    tools: [raster_convert, raster_warp]
+  - id: raster_mosaic
+    server: gdal-tools
+    tools: [raster_build_vrt, raster_warp]
+  - id: raster_calculate
+    server: gdal-tools
+    tools: [raster_calc]
+  - id: raster_overviews
+    server: gdal-tools
+    tools: [raster_overviews]
+  - id: raster_polygonize
+    server: gdal-tools
+    tools: [raster_polygonize]
+  - id: terrain
+    server: gdal-tools
+    tools: [dem_slope, dem_aspect, dem_hillshade, dem_terrain_index, dem_contour]
+  - id: vector_inspect
+    server: gdal-tools
+    tools: [vector_info]
   - id: vector_transform
-    server: gdal-tools-mcp
-    tools: [vector_info, vector_convert]
-  - id: geochemical_anomaly
-    server: mineral-core-mcp
-    tools: [geochemical_anomaly]
-  - id: geochemical_cleaning
-    server: mineral-core-mcp
-    tools: [geochemical_cleaning]
-  - id: element_combination
-    server: mineral-core-mcp
-    tools: [element_combination]
-  - id: alteration_detection
-    server: mineral-core-mcp
-    tools: [alteration_extraction]
-  - id: lineament_extraction
-    server: mineral-core-mcp
-    tools: [lineament_extraction]
-  - id: spectral_index
-    server: mineral-core-mcp
-    tools: [spectral_index]
-  - id: prospectivity_mapping
-    server: mineral-core-mcp
-    tools: [prospectivity_wofe]
-  - id: geophysical_filter
-    server: mineral-core-mcp
-    tools: [geophysics_filter]
-  - id: gravity_magnetic_processing
-    server: harmonica-mcp
-    tools: [upward_continuation, reduction_to_pole, bouguer_correction]
+    server: gdal-tools
+    tools: [vector_convert]
 
 notes: >
-  11 classes listed under mineral-tools-mcp/mcp. Environments: metadata/environments.yaml.
-  Agents connect via standard MCP (stdio or HTTP/SSE), not Cursor-specific APIs.
-  LoopStructural deferred (P1).
+  只包含 gdal-tools 已发布的 MCP 工具名。
+  运行环境见 metadata/environments.yaml；启动入口见 deploy/docker-compose.yml。

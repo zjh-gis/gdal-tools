@@ -1,1694 +1,247 @@
-version: "0.2"
-description: "Geoscience professional tool and model asset metadata for Task 1.2."
-metadata_template:
-  required_fields:
-    - id
-    - name
-    - category
-    - source
-    - capability_boundary
-    - applicable_task
-    - input_requirement
-    - output_type
-    - runtime_condition
-    - limitation
-    - call_mode
-    - related_agent
-    - handoff_rule
+version: "1.0"
+description: >
+  gdal-tools 已发布工具目录。机器可读契约以 gdal_tools/contracts/tools/*.yaml 为准。
+  输入和输出路径都必须在挂载工作区（容器内 /data，宿主机 MCP_DATA）内。
+environment_id: gdal-tools://environment/gdal
+runtime:
+  image: gdal-tools:1.0
+  compose: deploy/docker-compose.yml
+  workspace_env: GDAL_TOOLS_WORKSPACES
+  workspace_default: /data
 tools:
-  - id: rs_radiometric_correction
-    name: 遥感影像辐射校正工具
-    category: 遥感
-    source: 开源遥感处理库、专业遥感软件或平台已有工具
-    capability_boundary: 支持遥感影像基础处理、信息增强和异常辅助提取，结果需结合地质背景解释
-    applicable_task: 遥感影像预处理
-    input_requirement:
-      data_type: 多光谱或高光谱遥感影像
-      format: GeoTIFF、ENVI或平台栅格数据
-      requirement: 具备坐标参考、波段信息和研究区范围
-    output_type:
-      data_type: 处理后遥感影像、异常图层或统计摘要
-      format: GeoTIFF、GeoJSON、PNG或JSON
-    runtime_condition:
-      environment: Python + GDAL/rasterio/numpy或平台遥感工具
-      compute: CPU，较大影像可使用并行或切片处理
+  - id: gdal.raster_info
+    mcp_name: raster_info
+    name: 栅格元数据
+    category: inspect
+    capability: [raster_info]
+    call_mode: executable
+    long_running: false
+    description: 读取栅格 CRS、尺寸、波段、nodata、金字塔，可选统计值。
+    input:
+      data_type: 栅格
+      format: GDAL 可读栅格
+      requirement: 工作区内本地文件路径
+    output:
+      data_type: JSON 元数据
     limitation:
-      - 影像质量、云量和波段配置会影响结果可靠性
-      - 异常提取结果需结合地质、地化和专家经验复核
-    call_mode: indexed_or_lightweight_service
-    related_agent:
-      - 知识智能体
-      - 假说智能体
-    handoff_rule: 知识智能体可提供工具推荐和轻量调用结果，下游异常解释由假说智能体结合多源证据完成
-  - id: rs_atmospheric_correction
-    name: 遥感影像大气校正工具
-    category: 遥感
-    source: 开源遥感处理库、专业遥感软件或平台已有工具
-    capability_boundary: 支持遥感影像基础处理、信息增强和异常辅助提取，结果需结合地质背景解释
-    applicable_task: 遥感影像预处理
-    input_requirement:
-      data_type: 多光谱或高光谱遥感影像
-      format: GeoTIFF、ENVI或平台栅格数据
-      requirement: 具备坐标参考、波段信息和研究区范围
-    output_type:
-      data_type: 处理后遥感影像、异常图层或统计摘要
-      format: GeoTIFF、GeoJSON、PNG或JSON
-    runtime_condition:
-      environment: Python + GDAL/rasterio/numpy或平台遥感工具
-      compute: CPU，较大影像可使用并行或切片处理
+      - 不写出新栅格；statistics=true 时 GDAL 可能写 .aux.xml
+  - id: gdal.raster_convert
+    mcp_name: raster_convert
+    name: 栅格转换/矩形裁剪
+    category: raster
+    capability: [raster_convert]
+    call_mode: executable
+    long_running: true
+    description: 转换格式、选波段、改数据类型，或按矩形截取。
+    input:
+      data_type: 栅格
+      format: GDAL 可读栅格
+      requirement: 工作区内本地文件；须给 output_path
+    output:
+      data_type: 栅格
+      format: GeoTIFF / COG / VRT / PNG
     limitation:
-      - 影像质量、云量和波段配置会影响结果可靠性
-      - 异常提取结果需结合地质、地化和专家经验复核
-    call_mode: indexed_or_lightweight_service
-    related_agent:
-      - 知识智能体
-      - 假说智能体
-    handoff_rule: 知识智能体可提供工具推荐和轻量调用结果，下游异常解释由假说智能体结合多源证据完成
-  - id: rs_geometric_correction
-    name: 遥感影像几何校正工具
-    category: 遥感
-    source: 开源遥感处理库、专业遥感软件或平台已有工具
-    capability_boundary: 支持遥感影像基础处理、信息增强和异常辅助提取，结果需结合地质背景解释
-    applicable_task: 遥感影像预处理
-    input_requirement:
-      data_type: 多光谱或高光谱遥感影像
-      format: GeoTIFF、ENVI或平台栅格数据
-      requirement: 具备坐标参考、波段信息和研究区范围
-    output_type:
-      data_type: 处理后遥感影像、异常图层或统计摘要
-      format: GeoTIFF、GeoJSON、PNG或JSON
-    runtime_condition:
-      environment: Python + GDAL/rasterio/numpy或平台遥感工具
-      compute: CPU，较大影像可使用并行或切片处理
-    limitation:
-      - 影像质量、云量和波段配置会影响结果可靠性
-      - 异常提取结果需结合地质、地化和专家经验复核
-    call_mode: indexed_or_lightweight_service
-    related_agent:
-      - 知识智能体
-      - 假说智能体
-    handoff_rule: 知识智能体可提供工具推荐和轻量调用结果，下游异常解释由假说智能体结合多源证据完成
-  - id: rs_clip_mosaic
-    name: 遥感影像裁剪与拼接工具
-    category: 遥感
-    source: 开源遥感处理库、专业遥感软件或平台已有工具
-    capability_boundary: 支持遥感影像基础处理、信息增强和异常辅助提取，结果需结合地质背景解释
-    applicable_task: 研究区影像整理
-    input_requirement:
-      data_type: 多光谱或高光谱遥感影像
-      format: GeoTIFF、ENVI或平台栅格数据
-      requirement: 具备坐标参考、波段信息和研究区范围
-    output_type:
-      data_type: 处理后遥感影像、异常图层或统计摘要
-      format: GeoTIFF、GeoJSON、PNG或JSON
-    runtime_condition:
-      environment: Python + GDAL/rasterio/numpy或平台遥感工具
-      compute: CPU，较大影像可使用并行或切片处理
-    limitation:
-      - 影像质量、云量和波段配置会影响结果可靠性
-      - 异常提取结果需结合地质、地化和专家经验复核
-    call_mode: lightweight_service
-    related_agent:
-      - 知识智能体
-      - 假说智能体
-    handoff_rule: 知识智能体可提供工具推荐和轻量调用结果，下游异常解释由假说智能体结合多源证据完成
-  - id: rs_band_composition
-    name: 多光谱波段组合工具
-    category: 遥感
-    source: 开源遥感处理库、专业遥感软件或平台已有工具
-    capability_boundary: 支持遥感影像基础处理、信息增强和异常辅助提取，结果需结合地质背景解释
-    applicable_task: 多光谱特征增强
-    input_requirement:
-      data_type: 多光谱或高光谱遥感影像
-      format: GeoTIFF、ENVI或平台栅格数据
-      requirement: 具备坐标参考、波段信息和研究区范围
-    output_type:
-      data_type: 处理后遥感影像、异常图层或统计摘要
-      format: GeoTIFF、GeoJSON、PNG或JSON
-    runtime_condition:
-      environment: Python + GDAL/rasterio/numpy或平台遥感工具
-      compute: CPU，较大影像可使用并行或切片处理
-    limitation:
-      - 影像质量、云量和波段配置会影响结果可靠性
-      - 异常提取结果需结合地质、地化和专家经验复核
-    call_mode: lightweight_service
-    related_agent:
-      - 知识智能体
-      - 假说智能体
-    handoff_rule: 知识智能体可提供工具推荐和轻量调用结果，下游异常解释由假说智能体结合多源证据完成
-  - id: rs_vegetation_index
-    name: 遥感植被指数与叶面积指数计算工具
-    category: 遥感
-    source: 开源遥感处理库、专业遥感软件或平台已有工具
-    capability_boundary: 支持从多光谱影像计算NDVI、EVI、SAVI、NDWI和经验LAI，结果受波段配置、辐射定标和植被类型影响
-    applicable_task: 植被指数与叶面积指数计算
-    input_requirement:
-      data_type: 多光谱遥感影像
+      - 按多边形裁剪请用 gdal.raster_warp
+  - id: gdal.raster_warp
+    mcp_name: raster_warp
+    name: 重投影/重采样/镶嵌/按边界裁剪
+    category: raster
+    capability: [raster_reproject, raster_clip, raster_resample, raster_mosaic]
+    call_mode: executable
+    long_running: true
+    description: 用 gdalwarp 重投影、重采样、镶嵌，或按 bbox/矢量裁剪。
+    input:
+      data_type: 栅格；可选裁剪矢量
+      format: GDAL 栅格；裁剪边界为面矢量
+      requirement: data_path 或 data_paths 至少一个；须给 output_path
+    output:
+      data_type: 栅格
       format: GeoTIFF
-      requirement: 具备红光和近红外波段；EVI需蓝光波段，NDWI需绿光或短波红外波段
-    output_type:
-      data_type: 植被指数栅格和统计摘要
-      format: GeoTIFF、JSON
-    runtime_condition:
-      environment: Python + rasterio/numpy
-      compute: CPU，较大影像可使用切片处理
     limitation:
-      - LAI由NDVI或EVI经验关系反演，不是物理辐射传输模型
-      - 未做大气校正的DN值会显著影响指数数值
-    call_mode: lightweight_service
-    related_agent:
-      - 知识智能体
-      - 假说智能体
-    handoff_rule: 知识智能体可提供轻量指数计算结果，复杂LAI反演或物候分析可转交下游专业模型
-  - id: rs_pca_alteration
-    name: 主成分分析蚀变信息提取工具
-    category: 遥感
-    source: 开源遥感处理库、专业遥感软件或平台已有工具
-    capability_boundary: 支持基于主成分分析的蚀变信息增强和异常辅助提取，需结合波段配置和地质背景解释
-    applicable_task: 蚀变异常识别
-    input_requirement:
-      data_type: 多光谱或高光谱遥感影像
-      format: GeoTIFF、ENVI或平台栅格数据
-      requirement: 具备坐标参考、波段信息和研究区范围
-    output_type:
-      data_type: 处理后遥感影像、异常图层或统计摘要
-      format: GeoTIFF、GeoJSON、PNG或JSON
-    runtime_condition:
-      environment: Python + GDAL/rasterio/numpy或平台遥感工具
-      compute: CPU，较大影像可使用并行或切片处理
-    limitation:
-      - 影像质量、云量和波段配置会影响结果可靠性
-      - 异常提取结果需结合地质、地化和专家经验复核
-    call_mode: lightweight_service
-    related_agent:
-      - 知识智能体
-      - 假说智能体
-    handoff_rule: 知识智能体可提供工具推荐和轻量调用结果，下游异常解释由假说智能体结合多源证据完成
-  - id: rs_ratio_alteration
-    name: 比值法蚀变异常提取工具
-    category: 遥感
-    source: 开源遥感处理库、专业遥感软件或平台已有工具
-    capability_boundary: 支持基于经验波段比值的蚀变异常辅助提取，适用于具备相关波段的多光谱影像
-    applicable_task: 蚀变异常识别
-    input_requirement:
-      data_type: 多光谱或高光谱遥感影像
-      format: GeoTIFF、ENVI或平台栅格数据
-      requirement: 具备坐标参考、波段信息和研究区范围
-    output_type:
-      data_type: 处理后遥感影像、异常图层或统计摘要
-      format: GeoTIFF、GeoJSON、PNG或JSON
-    runtime_condition:
-      environment: Python + GDAL/rasterio/numpy或平台遥感工具
-      compute: CPU，较大影像可使用并行或切片处理
-    limitation:
-      - 影像质量、云量和波段配置会影响结果可靠性
-      - 异常提取结果需结合地质、地化和专家经验复核
-    call_mode: lightweight_service
-    related_agent:
-      - 知识智能体
-      - 假说智能体
-    handoff_rule: 知识智能体可提供工具推荐和轻量调用结果，下游异常解释由假说智能体结合多源证据完成
-  - id: rs_aster_mineral_mapping
-    name: ASTER蚀变矿物识别工具
-    category: 遥感
-    source: 开源遥感处理库、专业遥感软件或平台已有工具
-    capability_boundary: 支持遥感影像基础处理、信息增强和异常辅助提取，结果需结合地质背景解释
-    applicable_task: 蚀变矿物识别
-    input_requirement:
-      data_type: 多光谱或高光谱遥感影像
-      format: GeoTIFF、ENVI或平台栅格数据
-      requirement: 具备坐标参考、波段信息和研究区范围
-    output_type:
-      data_type: 处理后遥感影像、异常图层或统计摘要
-      format: GeoTIFF、GeoJSON、PNG或JSON
-    runtime_condition:
-      environment: Python + GDAL/rasterio/numpy或平台遥感工具
-      compute: CPU，较大影像可使用并行或切片处理
-    limitation:
-      - 影像质量、云量和波段配置会影响结果可靠性
-      - 异常提取结果需结合地质、地化和专家经验复核
-    call_mode: indexed_or_lightweight_service
-    related_agent:
-      - 知识智能体
-      - 假说智能体
-    handoff_rule: 知识智能体可提供工具推荐和轻量调用结果，下游异常解释由假说智能体结合多源证据完成
-  - id: rs_sentinel_landsat_preprocess
-    name: Sentinel/Landsat影像预处理工具
-    category: 遥感
-    source: 开源遥感处理库、专业遥感软件或平台已有工具
-    capability_boundary: 支持遥感影像基础处理、信息增强和异常辅助提取，结果需结合地质背景解释
-    applicable_task: 开源遥感数据预处理
-    input_requirement:
-      data_type: 多光谱或高光谱遥感影像
-      format: GeoTIFF、ENVI或平台栅格数据
-      requirement: 具备坐标参考、波段信息和研究区范围
-    output_type:
-      data_type: 处理后遥感影像、异常图层或统计摘要
-      format: GeoTIFF、GeoJSON、PNG或JSON
-    runtime_condition:
-      environment: Python + GDAL/rasterio/numpy或平台遥感工具
-      compute: CPU，较大影像可使用并行或切片处理
-    limitation:
-      - 影像质量、云量和波段配置会影响结果可靠性
-      - 异常提取结果需结合地质、地化和专家经验复核
-    call_mode: indexed_or_lightweight_service
-    related_agent:
-      - 知识智能体
-      - 假说智能体
-    handoff_rule: 知识智能体可提供工具推荐和轻量调用结果，下游异常解释由假说智能体结合多源证据完成
-  - id: rs_lineament_interpretation
-    name: 构造线性体遥感解译工具
-    category: 遥感
-    source: 开源遥感处理库、专业遥感软件或平台已有工具
-    capability_boundary: 支持遥感影像基础处理、信息增强和异常辅助提取，结果需结合地质背景解释
-    applicable_task: 构造线性体识别
-    input_requirement:
-      data_type: 多光谱或高光谱遥感影像
-      format: GeoTIFF、ENVI或平台栅格数据
-      requirement: 具备坐标参考、波段信息和研究区范围
-    output_type:
-      data_type: 处理后遥感影像、异常图层或统计摘要
-      format: GeoTIFF、GeoJSON、PNG或JSON
-    runtime_condition:
-      environment: Python + GDAL/rasterio/numpy或平台遥感工具
-      compute: CPU，较大影像可使用并行或切片处理
-    limitation:
-      - 影像质量、云量和波段配置会影响结果可靠性
-      - 异常提取结果需结合地质、地化和专家经验复核
-    call_mode: lightweight_service
-    related_agent:
-      - 知识智能体
-      - 假说智能体
-    handoff_rule: 知识智能体可直接调用 lineament_extraction 轻量服务；复杂构造解译转交假说智能体
-  - id: rs_anomaly_polygon_extraction
-    name: 遥感异常图斑提取工具
-    category: 遥感
-    source: 开源遥感处理库、专业遥感软件或平台已有工具
-    capability_boundary: 支持遥感影像基础处理、信息增强和异常辅助提取，结果需结合地质背景解释
-    applicable_task: 异常图斑提取
-    input_requirement:
-      data_type: 多光谱或高光谱遥感影像
-      format: GeoTIFF、ENVI或平台栅格数据
-      requirement: 具备坐标参考、波段信息和研究区范围
-    output_type:
-      data_type: 处理后遥感影像、异常图层或统计摘要
-      format: GeoTIFF、GeoJSON、PNG或JSON
-    runtime_condition:
-      environment: Python + GDAL/rasterio/numpy或平台遥感工具
-      compute: CPU，较大影像可使用并行或切片处理
-    limitation:
-      - 影像质量、云量和波段配置会影响结果可靠性
-      - 异常提取结果需结合地质、地化和专家经验复核
-    call_mode: lightweight_service
-    related_agent:
-      - 知识智能体
-      - 假说智能体
-    handoff_rule: 知识智能体可提供工具推荐和轻量调用结果，下游异常解释由假说智能体结合多源证据完成
-  - id: gis_coordinate_transform
-    name: 坐标系转换工具
-    category: GIS
-    source: 开源GIS库、桌面GIS软件或平台空间分析工具
-    capability_boundary: 支持基础空间数据处理、空间关系分析和图层组织，不承担靶区综合评价主体判断
-    applicable_task: 空间数据标准化
-    input_requirement:
-      data_type: 矢量图层、栅格图层或空间表格
-      format: Shapefile、GeoPackage、GeoJSON、GeoTIFF或CSV
-      requirement: 具备空间参考、有效几何和必要属性字段
-    output_type:
-      data_type: 空间分析结果图层或统计摘要
-      format: GeoJSON、GeoPackage、GeoTIFF或JSON
-    runtime_condition:
-      environment: Python + geopandas/shapely/pyproj/rasterio或平台GIS工具
-      compute: CPU
-    limitation:
-      - 不同图层坐标系统需统一
-      - 空间关系结果依赖输入数据精度和比例尺
-    call_mode: lightweight_service
-    related_agent:
-      - 知识智能体
-      - 假说智能体
-      - 验证智能体
-    handoff_rule: 知识智能体提供基础空间处理和工具调用建议，场景化靶区评价由相关智能体完成
-  - id: gis_vector_clip
-    name: 矢量数据裁剪工具
-    category: GIS
-    source: 开源GIS库、桌面GIS软件或平台空间分析工具
-    capability_boundary: 支持基础空间数据处理、空间关系分析和图层组织，不承担靶区综合评价主体判断
-    applicable_task: 研究区矢量数据整理
-    input_requirement:
-      data_type: 矢量图层、栅格图层或空间表格
-      format: Shapefile、GeoPackage、GeoJSON、GeoTIFF或CSV
-      requirement: 具备空间参考、有效几何和必要属性字段
-    output_type:
-      data_type: 空间分析结果图层或统计摘要
-      format: GeoJSON、GeoPackage、GeoTIFF或JSON
-    runtime_condition:
-      environment: Python + geopandas/shapely/pyproj/rasterio或平台GIS工具
-      compute: CPU
-    limitation:
-      - 不同图层坐标系统需统一
-      - 空间关系结果依赖输入数据精度和比例尺
-    call_mode: lightweight_service
-    related_agent:
-      - 知识智能体
-      - 假说智能体
-      - 验证智能体
-    handoff_rule: 知识智能体提供基础空间处理和工具调用建议，场景化靶区评价由相关智能体完成
-  - id: gis_raster_resampling
-    name: 栅格重采样工具
-    category: GIS
-    source: 开源GIS库、桌面GIS软件或平台空间分析工具
-    capability_boundary: 支持基础空间数据处理、空间关系分析和图层组织，不承担靶区综合评价主体判断
-    applicable_task: 空间分辨率统一
-    input_requirement:
-      data_type: 矢量图层、栅格图层或空间表格
-      format: Shapefile、GeoPackage、GeoJSON、GeoTIFF或CSV
-      requirement: 具备空间参考、有效几何和必要属性字段
-    output_type:
-      data_type: 空间分析结果图层或统计摘要
-      format: GeoJSON、GeoPackage、GeoTIFF或JSON
-    runtime_condition:
-      environment: Python + geopandas/shapely/pyproj/rasterio或平台GIS工具
-      compute: CPU
-    limitation:
-      - 不同图层坐标系统需统一
-      - 空间关系结果依赖输入数据精度和比例尺
-    call_mode: lightweight_service
-    related_agent:
-      - 知识智能体
-      - 假说智能体
-      - 验证智能体
-    handoff_rule: 知识智能体提供基础空间处理和工具调用建议，场景化靶区评价由相关智能体完成
-  - id: gis_overlay
-    name: 图层叠加分析工具
-    category: GIS
-    source: 开源GIS库、桌面GIS软件或平台空间分析工具
-    capability_boundary: 支持基础空间数据处理、空间关系分析和图层组织，不承担靶区综合评价主体判断
-    applicable_task: 多源空间证据叠加
-    input_requirement:
-      data_type: 矢量图层、栅格图层或空间表格
-      format: Shapefile、GeoPackage、GeoJSON、GeoTIFF或CSV
-      requirement: 具备空间参考、有效几何和必要属性字段
-    output_type:
-      data_type: 空间分析结果图层或统计摘要
-      format: GeoJSON、GeoPackage、GeoTIFF或JSON
-    runtime_condition:
-      environment: Python + geopandas/shapely/pyproj/rasterio或平台GIS工具
-      compute: CPU
-    limitation:
-      - 不同图层坐标系统需统一
-      - 空间关系结果依赖输入数据精度和比例尺
-    call_mode: lightweight_service
-    related_agent:
-      - 知识智能体
-      - 假说智能体
-      - 验证智能体
-    handoff_rule: 知识智能体提供基础空间处理和工具调用建议，场景化靶区评价由相关智能体完成
-  - id: gis_buffer
-    name: 缓冲区分析工具
-    category: GIS
-    source: 开源GIS库、桌面GIS软件或平台空间分析工具
-    capability_boundary: 支持基础空间数据处理、空间关系分析和图层组织，不承担靶区综合评价主体判断
-    applicable_task: 空间邻近约束分析
-    input_requirement:
-      data_type: 矢量图层、栅格图层或空间表格
-      format: Shapefile、GeoPackage、GeoJSON、GeoTIFF或CSV
-      requirement: 具备空间参考、有效几何和必要属性字段
-    output_type:
-      data_type: 空间分析结果图层或统计摘要
-      format: GeoJSON、GeoPackage、GeoTIFF或JSON
-    runtime_condition:
-      environment: Python + geopandas/shapely/pyproj/rasterio或平台GIS工具
-      compute: CPU
-    limitation:
-      - 不同图层坐标系统需统一
-      - 空间关系结果依赖输入数据精度和比例尺
-    call_mode: lightweight_service
-    related_agent:
-      - 知识智能体
-      - 假说智能体
-      - 验证智能体
-    handoff_rule: 知识智能体提供基础空间处理和工具调用建议，场景化靶区评价由相关智能体完成
-  - id: gis_proximity
-    name: 空间邻近性分析工具
-    category: GIS
-    source: 开源GIS库、桌面GIS软件或平台空间分析工具
-    capability_boundary: 支持基础空间数据处理、空间关系分析和图层组织，不承担靶区综合评价主体判断
-    applicable_task: 距离和邻近关系分析
-    input_requirement:
-      data_type: 矢量图层、栅格图层或空间表格
-      format: Shapefile、GeoPackage、GeoJSON、GeoTIFF或CSV
-      requirement: 具备空间参考、有效几何和必要属性字段
-    output_type:
-      data_type: 空间分析结果图层或统计摘要
-      format: GeoJSON、GeoPackage、GeoTIFF或JSON
-    runtime_condition:
-      environment: Python + geopandas/shapely/pyproj/rasterio或平台GIS工具
-      compute: CPU
-    limitation:
-      - 不同图层坐标系统需统一
-      - 空间关系结果依赖输入数据精度和比例尺
-    call_mode: lightweight_service
-    related_agent:
-      - 知识智能体
-      - 假说智能体
-      - 验证智能体
-    handoff_rule: 知识智能体提供基础空间处理和工具调用建议，场景化靶区评价由相关智能体完成
-  - id: gis_density
-    name: 空间密度分析工具
-    category: GIS
-    source: 开源GIS库、桌面GIS软件或平台空间分析工具
-    capability_boundary: 支持基础空间数据处理、空间关系分析和图层组织，不承担靶区综合评价主体判断
-    applicable_task: 异常空间聚集分析
-    input_requirement:
-      data_type: 矢量图层、栅格图层或空间表格
-      format: Shapefile、GeoPackage、GeoJSON、GeoTIFF或CSV
-      requirement: 具备空间参考、有效几何和必要属性字段
-    output_type:
-      data_type: 空间分析结果图层或统计摘要
-      format: GeoJSON、GeoPackage、GeoTIFF或JSON
-    runtime_condition:
-      environment: Python + geopandas/shapely/pyproj/rasterio或平台GIS工具
-      compute: CPU
-    limitation:
-      - 不同图层坐标系统需统一
-      - 空间关系结果依赖输入数据精度和比例尺
-    call_mode: lightweight_service
-    related_agent:
-      - 知识智能体
-      - 假说智能体
-      - 验证智能体
-    handoff_rule: 知识智能体提供基础空间处理和工具调用建议，场景化靶区评价由相关智能体完成
-  - id: gis_multisource_registration
-    name: 多源空间数据配准工具
-    category: GIS
-    source: 开源GIS库、桌面GIS软件或平台空间分析工具
-    capability_boundary: 支持基础空间数据处理、空间关系分析和图层组织，不承担靶区综合评价主体判断
-    applicable_task: 多源空间数据对齐
-    input_requirement:
-      data_type: 矢量图层、栅格图层或空间表格
-      format: Shapefile、GeoPackage、GeoJSON、GeoTIFF或CSV
-      requirement: 具备空间参考、有效几何和必要属性字段
-    output_type:
-      data_type: 空间分析结果图层或统计摘要
-      format: GeoJSON、GeoPackage、GeoTIFF或JSON
-    runtime_condition:
-      environment: Python + geopandas/shapely/pyproj/rasterio或平台GIS工具
-      compute: CPU
-    limitation:
-      - 不同图层坐标系统需统一
-      - 空间关系结果依赖输入数据精度和比例尺
-    call_mode: indexed_or_lightweight_service
-    related_agent:
-      - 知识智能体
-      - 假说智能体
-      - 验证智能体
-    handoff_rule: 知识智能体提供基础空间处理和工具调用建议，场景化靶区评价由相关智能体完成
-  - id: gis_target_layer_management
-    name: 靶区图层管理工具
-    category: GIS
-    source: 开源GIS库、桌面GIS软件或平台空间分析工具
-    capability_boundary: 支持基础空间数据处理、空间关系分析和图层组织，不承担靶区综合评价主体判断
-    applicable_task: 靶区成果图层组织
-    input_requirement:
-      data_type: 矢量图层、栅格图层或空间表格
-      format: Shapefile、GeoPackage、GeoJSON、GeoTIFF或CSV
-      requirement: 具备空间参考、有效几何和必要属性字段
-    output_type:
-      data_type: 空间分析结果图层或统计摘要
-      format: GeoJSON、GeoPackage、GeoTIFF或JSON
-    runtime_condition:
-      environment: Python + geopandas/shapely/pyproj/rasterio或平台GIS工具
-      compute: CPU
-    limitation:
-      - 不同图层坐标系统需统一
-      - 空间关系结果依赖输入数据精度和比例尺
-    call_mode: indexed_or_lightweight_service
-    related_agent:
-      - 知识智能体
-      - 假说智能体
-      - 验证智能体
-    handoff_rule: 知识智能体提供基础空间处理和工具调用建议，场景化靶区评价由相关智能体完成
-  - id: geochem_cleaning
-    name: 地球化学数据清洗工具
-    category: 地球化学
-    source: 统计分析库、地球化学处理脚本或平台表格分析工具
-    capability_boundary: 支持地化数据清洗、统计、异常识别和元素组合辅助分析，不替代成矿解释和实验验证
-    applicable_task: 地化数据预处理
-    input_requirement:
-      data_type: 地球化学样点表格
-      format: CSV、XLSX或数据库表
-      requirement: 包含样点编号、元素字段，空间分析时需包含坐标字段
-    output_type:
-      data_type: 异常阈值、异常样点、元素组合结果或统计摘要
-      format: CSV、GeoJSON或JSON
-    runtime_condition:
-      environment: Python + csv/pandas/numpy/scipy或平台统计工具
-      compute: CPU
-    limitation:
-      - 样本数量和检出限处理会影响异常识别结果
-      - 统计异常需结合地质背景和采样条件解释
-    call_mode: lightweight_service
-    related_agent:
-      - 知识智能体
-      - 假说智能体
-      - 实验智能体
-    handoff_rule: 知识智能体可生成异常识别和元素组合结果，成矿意义解释和验证方案由假说或实验智能体承接
-  - id: geochem_descriptive_stats
-    name: 地球化学描述性统计工具
-    category: 地球化学
-    source: 统计分析库、地球化学处理脚本或平台表格分析工具
-    capability_boundary: 支持地化数据清洗、统计、异常识别和元素组合辅助分析，不替代成矿解释和实验验证
-    applicable_task: 元素统计特征分析
-    input_requirement:
-      data_type: 地球化学样点表格
-      format: CSV、XLSX或数据库表
-      requirement: 包含样点编号、元素字段，空间分析时需包含坐标字段
-    output_type:
-      data_type: 异常阈值、异常样点、元素组合结果或统计摘要
-      format: CSV、GeoJSON或JSON
-    runtime_condition:
-      environment: Python + csv/pandas/numpy/scipy或平台统计工具
-      compute: CPU
-    limitation:
-      - 样本数量和检出限处理会影响异常识别结果
-      - 统计异常需结合地质背景和采样条件解释
-    call_mode: lightweight_service
-    related_agent:
-      - 知识智能体
-      - 假说智能体
-      - 实验智能体
-    handoff_rule: 知识智能体可生成异常识别和元素组合结果，成矿意义解释和验证方案由假说或实验智能体承接
-  - id: geochem_anomaly_threshold
-    name: 异常下限计算工具
-    category: 地球化学
-    source: 统计分析库、地球化学处理脚本或平台表格分析工具
-    capability_boundary: 支持均值标准差、分位数等基础异常阈值计算，不替代成矿异常综合解释
-    applicable_task: 地化异常阈值计算
-    input_requirement:
-      data_type: 地球化学样点表格
-      format: CSV、XLSX或数据库表
-      requirement: 包含样点编号、元素字段，空间分析时需包含坐标字段
-    output_type:
-      data_type: 异常阈值、异常样点、元素组合结果或统计摘要
-      format: CSV、GeoJSON或JSON
-    runtime_condition:
-      environment: Python + csv/pandas/numpy/scipy或平台统计工具
-      compute: CPU
-    limitation:
-      - 样本数量和检出限处理会影响异常识别结果
-      - 统计异常需结合地质背景和采样条件解释
-    call_mode: lightweight_service
-    related_agent:
-      - 知识智能体
-      - 假说智能体
-      - 实验智能体
-    handoff_rule: 知识智能体可生成异常识别和元素组合结果，成矿意义解释和验证方案由假说或实验智能体承接
-  - id: geochem_quantile_anomaly
-    name: 分位数异常识别工具
-    category: 地球化学
-    source: 统计分析库、地球化学处理脚本或平台表格分析工具
-    capability_boundary: 支持地化数据清洗、统计、异常识别和元素组合辅助分析，不替代成矿解释和实验验证
-    applicable_task: 地化异常识别
-    input_requirement:
-      data_type: 地球化学样点表格
-      format: CSV、XLSX或数据库表
-      requirement: 包含样点编号、元素字段，空间分析时需包含坐标字段
-    output_type:
-      data_type: 异常阈值、异常样点、元素组合结果或统计摘要
-      format: CSV、GeoJSON或JSON
-    runtime_condition:
-      environment: Python + csv/pandas/numpy/scipy或平台统计工具
-      compute: CPU
-    limitation:
-      - 样本数量和检出限处理会影响异常识别结果
-      - 统计异常需结合地质背景和采样条件解释
-    call_mode: lightweight_service
-    related_agent:
-      - 知识智能体
-      - 假说智能体
-      - 实验智能体
-    handoff_rule: 知识智能体可生成异常识别和元素组合结果，成矿意义解释和验证方案由假说或实验智能体承接
-  - id: geochem_mean_std_anomaly
-    name: 均值标准差异常识别工具
-    category: 地球化学
-    source: 统计分析库、地球化学处理脚本或平台表格分析工具
-    capability_boundary: 支持地化数据清洗、统计、异常识别和元素组合辅助分析，不替代成矿解释和实验验证
-    applicable_task: 地化异常识别
-    input_requirement:
-      data_type: 地球化学样点表格
-      format: CSV、XLSX或数据库表
-      requirement: 包含样点编号、元素字段，空间分析时需包含坐标字段
-    output_type:
-      data_type: 异常阈值、异常样点、元素组合结果或统计摘要
-      format: CSV、GeoJSON或JSON
-    runtime_condition:
-      environment: Python + csv/pandas/numpy/scipy或平台统计工具
-      compute: CPU
-    limitation:
-      - 样本数量和检出限处理会影响异常识别结果
-      - 统计异常需结合地质背景和采样条件解释
-    call_mode: lightweight_service
-    related_agent:
-      - 知识智能体
-      - 假说智能体
-      - 实验智能体
-    handoff_rule: 知识智能体可生成异常识别和元素组合结果，成矿意义解释和验证方案由假说或实验智能体承接
-  - id: geochem_correlation
-    name: 元素相关性分析工具
-    category: 地球化学
-    source: 统计分析库、地球化学处理脚本或平台表格分析工具
-    capability_boundary: 支持地化数据清洗、统计、异常识别和元素组合辅助分析，不替代成矿解释和实验验证
-    applicable_task: 元素关联分析
-    input_requirement:
-      data_type: 地球化学样点表格
-      format: CSV、XLSX或数据库表
-      requirement: 包含样点编号、元素字段，空间分析时需包含坐标字段
-    output_type:
-      data_type: 异常阈值、异常样点、元素组合结果或统计摘要
-      format: CSV、GeoJSON或JSON
-    runtime_condition:
-      environment: Python + csv/pandas/numpy/scipy或平台统计工具
-      compute: CPU
-    limitation:
-      - 样本数量和检出限处理会影响异常识别结果
-      - 统计异常需结合地质背景和采样条件解释
-    call_mode: lightweight_service
-    related_agent:
-      - 知识智能体
-      - 假说智能体
-      - 实验智能体
-    handoff_rule: 知识智能体可生成异常识别和元素组合结果，成矿意义解释和验证方案由假说或实验智能体承接
-  - id: geochem_element_combination
-    name: 元素组合筛选工具
-    category: 地球化学
-    source: 统计分析库、地球化学处理脚本或平台表格分析工具
-    capability_boundary: 支持地化数据清洗、统计、异常识别和元素组合辅助分析，不替代成矿解释和实验验证
-    applicable_task: 指示元素组合分析
-    input_requirement:
-      data_type: 地球化学样点表格
-      format: CSV、XLSX或数据库表
-      requirement: 包含样点编号、元素字段，空间分析时需包含坐标字段
-    output_type:
-      data_type: 异常阈值、异常样点、元素组合结果或统计摘要
-      format: CSV、GeoJSON或JSON
-    runtime_condition:
-      environment: Python + csv/pandas/numpy/scipy或平台统计工具
-      compute: CPU
-    limitation:
-      - 样本数量和检出限处理会影响异常识别结果
-      - 统计异常需结合地质背景和采样条件解释
-    call_mode: lightweight_service
-    related_agent:
-      - 知识智能体
-      - 假说智能体
-      - 实验智能体
-    handoff_rule: 知识智能体可生成异常识别和元素组合结果，成矿意义解释和验证方案由假说或实验智能体承接
-  - id: geochem_au_bi_as
-    name: Au-Bi-As组合异常分析工具
-    category: 地球化学
-    source: 统计分析库、地球化学处理脚本或平台表格分析工具
-    capability_boundary: 支持Au-Bi-As等指示元素组合的统计筛选和异常辅助判别
-    applicable_task: 金矿指示元素组合分析
-    input_requirement:
-      data_type: 地球化学样点表格
-      format: CSV、XLSX或数据库表
-      requirement: 包含样点编号、元素字段，空间分析时需包含坐标字段
-    output_type:
-      data_type: 异常阈值、异常样点、元素组合结果或统计摘要
-      format: CSV、GeoJSON或JSON
-    runtime_condition:
-      environment: Python + csv/pandas/numpy/scipy或平台统计工具
-      compute: CPU
-    limitation:
-      - 样本数量和检出限处理会影响异常识别结果
-      - 统计异常需结合地质背景和采样条件解释
-    call_mode: lightweight_service
-    related_agent:
-      - 知识智能体
-      - 假说智能体
-      - 实验智能体
-    handoff_rule: 知识智能体可生成异常识别和元素组合结果，成矿意义解释和验证方案由假说或实验智能体承接
-  - id: geochem_ree_pattern
-    name: 稀土元素配分模式分析工具
-    category: 地球化学
-    source: 统计分析库、地球化学处理脚本或平台表格分析工具
-    capability_boundary: 支持地化数据清洗、统计、异常识别和元素组合辅助分析，不替代成矿解释和实验验证
-    applicable_task: 稀土元素配分分析
-    input_requirement:
-      data_type: 地球化学样点表格
-      format: CSV、XLSX或数据库表
-      requirement: 包含样点编号、元素字段，空间分析时需包含坐标字段
-    output_type:
-      data_type: 异常阈值、异常样点、元素组合结果或统计摘要
-      format: CSV、GeoJSON或JSON
-    runtime_condition:
-      environment: Python + csv/pandas/numpy/scipy或平台统计工具
-      compute: CPU
-    limitation:
-      - 样本数量和检出限处理会影响异常识别结果
-      - 统计异常需结合地质背景和采样条件解释
-    call_mode: indexed_or_lightweight_service
-    related_agent:
-      - 知识智能体
-      - 假说智能体
-      - 实验智能体
-    handoff_rule: 知识智能体可生成异常识别和元素组合结果，成矿意义解释和验证方案由假说或实验智能体承接
-  - id: geochem_isotope_discrimination
-    name: 同位素数据辅助判别工具
-    category: 地球化学
-    source: 统计分析库、地球化学处理脚本或平台表格分析工具
-    capability_boundary: 支持地化数据清洗、统计、异常识别和元素组合辅助分析，不替代成矿解释和实验验证
-    applicable_task: 同位素示踪辅助判别
-    input_requirement:
-      data_type: 地球化学样点表格
-      format: CSV、XLSX或数据库表
-      requirement: 包含样点编号、元素字段，空间分析时需包含坐标字段
-    output_type:
-      data_type: 异常阈值、异常样点、元素组合结果或统计摘要
-      format: CSV、GeoJSON或JSON
-    runtime_condition:
-      environment: Python + csv/pandas/numpy/scipy或平台统计工具
-      compute: CPU
-    limitation:
-      - 样本数量和检出限处理会影响异常识别结果
-      - 统计异常需结合地质背景和采样条件解释
-    call_mode: indexed_or_handoff
-    related_agent:
-      - 知识智能体
-      - 假说智能体
-      - 实验智能体
-    handoff_rule: 知识智能体可生成异常识别和元素组合结果，成矿意义解释和验证方案由假说或实验智能体承接
-  - id: geochem_anomaly_map
-    name: 地化异常图件生成工具
-    category: 地球化学
-    source: 统计分析库、地球化学处理脚本或平台表格分析工具
-    capability_boundary: 支持地化数据清洗、统计、异常识别和元素组合辅助分析，不替代成矿解释和实验验证
-    applicable_task: 地化异常图件输出
-    input_requirement:
-      data_type: 地球化学样点表格
-      format: CSV、XLSX或数据库表
-      requirement: 包含样点编号、元素字段，空间分析时需包含坐标字段
-    output_type:
-      data_type: 异常阈值、异常样点、元素组合结果或统计摘要
-      format: CSV、GeoJSON或JSON
-    runtime_condition:
-      environment: Python + csv/pandas/numpy/scipy或平台统计工具
-      compute: CPU
-    limitation:
-      - 样本数量和检出限处理会影响异常识别结果
-      - 统计异常需结合地质背景和采样条件解释
-    call_mode: lightweight_service
-    related_agent:
-      - 知识智能体
-      - 假说智能体
-      - 实验智能体
-    handoff_rule: 知识智能体可生成异常识别和元素组合结果，成矿意义解释和验证方案由假说或实验智能体承接
-  - id: map_registration
-    name: 地质图配准工具
-    category: 地质图件
-    source: 地质图件处理脚本、GIS工具或图像处理工具
-    capability_boundary: 支持图件配准、基础图层信息整理和空间约束提取，复杂语义识别需结合人工或专门模型
-    applicable_task: 地质图空间配准
-    input_requirement:
-      data_type: 扫描地质图、已配准栅格图或矢量地质图层
-      format: TIFF、PNG、GeoTIFF、Shapefile、GeoPackage或GeoJSON
-      requirement: 具备图件来源、比例尺、坐标信息或控制点信息
-    output_type:
-      data_type: 配准图件、图层信息、空间约束或处理摘要
-      format: GeoTIFF、GeoJSON、CSV或JSON
-    runtime_condition:
-      environment: Python + GDAL/OpenCV/geopandas或平台图件处理工具
-      compute: CPU
-    limitation:
-      - 扫描质量、图例复杂度和比例尺会影响处理效果
-      - 关键构造和地层解释需专家复核
-    call_mode: lightweight_service
-    related_agent:
-      - 知识智能体
-      - 假说智能体
-    handoff_rule: 知识智能体提供图件辅助处理结果和空间约束，下游地质解释由相关课题结合场景完成
-  - id: map_vectorization
-    name: 地质图图层矢量化工具
-    category: 地质图件
-    source: 地质图件处理脚本、GIS工具或图像处理工具
-    capability_boundary: 支持图件配准、基础图层信息整理和空间约束提取，复杂语义识别需结合人工或专门模型
-    applicable_task: 地质图件结构化
-    input_requirement:
-      data_type: 扫描地质图、已配准栅格图或矢量地质图层
-      format: TIFF、PNG、GeoTIFF、Shapefile、GeoPackage或GeoJSON
-      requirement: 具备图件来源、比例尺、坐标信息或控制点信息
-    output_type:
-      data_type: 配准图件、图层信息、空间约束或处理摘要
-      format: GeoTIFF、GeoJSON、CSV或JSON
-    runtime_condition:
-      environment: Python + GDAL/OpenCV/geopandas或平台图件处理工具
-      compute: CPU
-    limitation:
-      - 扫描质量、图例复杂度和比例尺会影响处理效果
-      - 关键构造和地层解释需专家复核
-    call_mode: indexed_or_lightweight_service
-    related_agent:
-      - 知识智能体
-      - 假说智能体
-    handoff_rule: 知识智能体提供图件辅助处理结果和空间约束，下游地质解释由相关课题结合场景完成
-  - id: map_legend_recognition
-    name: 地质图图例辅助识别工具
-    category: 地质图件
-    source: 地质图件处理脚本、GIS工具或图像处理工具
-    capability_boundary: 支持图件配准、基础图层信息整理和空间约束提取，复杂语义识别需结合人工或专门模型
-    applicable_task: 图例辅助识别
-    input_requirement:
-      data_type: 扫描地质图、已配准栅格图或矢量地质图层
-      format: TIFF、PNG、GeoTIFF、Shapefile、GeoPackage或GeoJSON
-      requirement: 具备图件来源、比例尺、坐标信息或控制点信息
-    output_type:
-      data_type: 配准图件、图层信息、空间约束或处理摘要
-      format: GeoTIFF、GeoJSON、CSV或JSON
-    runtime_condition:
-      environment: Python + GDAL/OpenCV/geopandas或平台图件处理工具
-      compute: CPU
-    limitation:
-      - 扫描质量、图例复杂度和比例尺会影响处理效果
-      - 关键构造和地层解释需专家复核
-    call_mode: lightweight_service
-    related_agent:
-      - 知识智能体
-      - 假说智能体
-    handoff_rule: 知识智能体提供图件辅助处理结果和空间约束，下游地质解释由相关课题结合场景完成
-  - id: map_fault_extraction
-    name: 断裂构造信息提取工具
-    category: 地质图件
-    source: 地质图件处理脚本、GIS工具或图像处理工具
-    capability_boundary: 支持图件配准、基础图层信息整理和空间约束提取，复杂语义识别需结合人工或专门模型
-    applicable_task: 构造信息提取
-    input_requirement:
-      data_type: 扫描地质图、已配准栅格图或矢量地质图层
-      format: TIFF、PNG、GeoTIFF、Shapefile、GeoPackage或GeoJSON
-      requirement: 具备图件来源、比例尺、坐标信息或控制点信息
-    output_type:
-      data_type: 配准图件、图层信息、空间约束或处理摘要
-      format: GeoTIFF、GeoJSON、CSV或JSON
-    runtime_condition:
-      environment: Python + GDAL/OpenCV/geopandas或平台图件处理工具
-      compute: CPU
-    limitation:
-      - 扫描质量、图例复杂度和比例尺会影响处理效果
-      - 关键构造和地层解释需专家复核
-    call_mode: indexed_or_lightweight_service
-    related_agent:
-      - 知识智能体
-      - 假说智能体
-    handoff_rule: 知识智能体提供图件辅助处理结果和空间约束，下游地质解释由相关课题结合场景完成
-  - id: map_stratigraphic_boundary
-    name: 地层界线提取工具
-    category: 地质图件
-    source: 地质图件处理脚本、GIS工具或图像处理工具
-    capability_boundary: 支持图件配准、基础图层信息整理和空间约束提取，复杂语义识别需结合人工或专门模型
-    applicable_task: 地层空间约束提取
-    input_requirement:
-      data_type: 扫描地质图、已配准栅格图或矢量地质图层
-      format: TIFF、PNG、GeoTIFF、Shapefile、GeoPackage或GeoJSON
-      requirement: 具备图件来源、比例尺、坐标信息或控制点信息
-    output_type:
-      data_type: 配准图件、图层信息、空间约束或处理摘要
-      format: GeoTIFF、GeoJSON、CSV或JSON
-    runtime_condition:
-      environment: Python + GDAL/OpenCV/geopandas或平台图件处理工具
-      compute: CPU
-    limitation:
-      - 扫描质量、图例复杂度和比例尺会影响处理效果
-      - 关键构造和地层解释需专家复核
-    call_mode: indexed_or_lightweight_service
-    related_agent:
-      - 知识智能体
-      - 假说智能体
-    handoff_rule: 知识智能体提供图件辅助处理结果和空间约束，下游地质解释由相关课题结合场景完成
-  - id: map_intrusion_boundary
-    name: 岩体边界提取工具
-    category: 地质图件
-    source: 地质图件处理脚本、GIS工具或图像处理工具
-    capability_boundary: 支持图件配准、基础图层信息整理和空间约束提取，复杂语义识别需结合人工或专门模型
-    applicable_task: 岩体空间约束提取
-    input_requirement:
-      data_type: 扫描地质图、已配准栅格图或矢量地质图层
-      format: TIFF、PNG、GeoTIFF、Shapefile、GeoPackage或GeoJSON
-      requirement: 具备图件来源、比例尺、坐标信息或控制点信息
-    output_type:
-      data_type: 配准图件、图层信息、空间约束或处理摘要
-      format: GeoTIFF、GeoJSON、CSV或JSON
-    runtime_condition:
-      environment: Python + GDAL/OpenCV/geopandas或平台图件处理工具
-      compute: CPU
-    limitation:
-      - 扫描质量、图例复杂度和比例尺会影响处理效果
-      - 关键构造和地层解释需专家复核
-    call_mode: indexed_or_lightweight_service
-    related_agent:
-      - 知识智能体
-      - 假说智能体
-    handoff_rule: 知识智能体提供图件辅助处理结果和空间约束，下游地质解释由相关课题结合场景完成
-  - id: map_section_parse
-    name: 地质剖面图辅助解析工具
-    category: 地质图件
-    source: 地质图件处理脚本、GIS工具或图像处理工具
-    capability_boundary: 支持图件配准、基础图层信息整理和空间约束提取，复杂语义识别需结合人工或专门模型
-    applicable_task: 剖面图辅助解析
-    input_requirement:
-      data_type: 扫描地质图、已配准栅格图或矢量地质图层
-      format: TIFF、PNG、GeoTIFF、Shapefile、GeoPackage或GeoJSON
-      requirement: 具备图件来源、比例尺、坐标信息或控制点信息
-    output_type:
-      data_type: 配准图件、图层信息、空间约束或处理摘要
-      format: GeoTIFF、GeoJSON、CSV或JSON
-    runtime_condition:
-      environment: Python + GDAL/OpenCV/geopandas或平台图件处理工具
-      compute: CPU
-    limitation:
-      - 扫描质量、图例复杂度和比例尺会影响处理效果
-      - 关键构造和地层解释需专家复核
-    call_mode: indexed_or_handoff
-    related_agent:
-      - 知识智能体
-      - 假说智能体
-    handoff_rule: 知识智能体提供图件辅助处理结果和空间约束，下游地质解释由相关课题结合场景完成
-  - id: map_borehole_column_parse
-    name: 钻孔柱状图辅助解析工具
-    category: 地质图件
-    source: 地质图件处理脚本、GIS工具或图像处理工具
-    capability_boundary: 支持图件配准、基础图层信息整理和空间约束提取，复杂语义识别需结合人工或专门模型
-    applicable_task: 钻孔柱状图辅助解析
-    input_requirement:
-      data_type: 扫描地质图、已配准栅格图或矢量地质图层
-      format: TIFF、PNG、GeoTIFF、Shapefile、GeoPackage或GeoJSON
-      requirement: 具备图件来源、比例尺、坐标信息或控制点信息
-    output_type:
-      data_type: 配准图件、图层信息、空间约束或处理摘要
-      format: GeoTIFF、GeoJSON、CSV或JSON
-    runtime_condition:
-      environment: Python + GDAL/OpenCV/geopandas或平台图件处理工具
-      compute: CPU
-    limitation:
-      - 扫描质量、图例复杂度和比例尺会影响处理效果
-      - 关键构造和地层解释需专家复核
-    call_mode: indexed_or_handoff
-    related_agent:
-      - 知识智能体
-      - 假说智能体
-    handoff_rule: 知识智能体提供图件辅助处理结果和空间约束，下游地质解释由相关课题结合场景完成
-  - id: geophysics_gravity_anomaly
-    name: 重力异常处理工具
-    category: 物探
-    source: 物探数据处理软件、专业脚本或平台物探工具
-    capability_boundary: 支持物探异常预处理、能力说明和解释支撑，复杂反演和深部建模需转交专业智能体
-    applicable_task: 重力异常预处理和解释支撑
-    input_requirement:
-      data_type: 重力、磁法、电法或相关物探数据
-      format: CSV、网格文件、GeoTIFF或专业物探格式
-      requirement: 包含测点位置、观测值、坐标系统和必要采集参数
-    output_type:
-      data_type: 异常处理结果、解释辅助图件或工具说明
-      format: CSV、GeoTIFF、GeoJSON或JSON
-    runtime_condition:
-      environment: 专业物探软件、Python科学计算库或平台物探工具
-      compute: CPU，中大型反演任务需高性能计算资源
-    limitation:
-      - 物探解释存在多解性
-      - 反演参数和地质约束需专家确认
-    call_mode: lightweight_service
-    related_agent:
-      - 知识智能体
-      - 假说智能体
-      - 仿真智能体
-    handoff_rule: 轻量异常检测调用 geophysics_anomaly(method=gravity)；复杂反演转交仿真智能体
-  - id: geophysics_magnetic_anomaly
-    name: 磁异常处理工具
-    category: 物探
-    source: 物探数据处理软件、专业脚本或平台物探工具
-    capability_boundary: 支持物探异常预处理、能力说明和解释支撑，复杂反演和深部建模需转交专业智能体
-    applicable_task: 磁异常预处理和解释支撑
-    input_requirement:
-      data_type: 重力、磁法、电法或相关物探数据
-      format: CSV、网格文件、GeoTIFF或专业物探格式
-      requirement: 包含测点位置、观测值、坐标系统和必要采集参数
-    output_type:
-      data_type: 异常处理结果、解释辅助图件或工具说明
-      format: CSV、GeoTIFF、GeoJSON或JSON
-    runtime_condition:
-      environment: 专业物探软件、Python科学计算库或平台物探工具
-      compute: CPU，中大型反演任务需高性能计算资源
-    limitation:
-      - 物探解释存在多解性
-      - 反演参数和地质约束需专家确认
-    call_mode: lightweight_service
-    related_agent:
-      - 知识智能体
-      - 假说智能体
-      - 仿真智能体
-    handoff_rule: 轻量异常检测调用 geophysics_anomaly(method=magnetic)；复杂反演转交仿真智能体
-  - id: geophysics_electrical_anomaly
-    name: 电法异常处理工具
-    category: 物探
-    source: 物探数据处理软件、专业脚本或平台物探工具
-    capability_boundary: 支持物探异常预处理、能力说明和解释支撑，复杂反演和深部建模需转交专业智能体
-    applicable_task: 电法异常预处理和解释支撑
-    input_requirement:
-      data_type: 重力、磁法、电法或相关物探数据
-      format: CSV、网格文件、GeoTIFF或专业物探格式
-      requirement: 包含测点位置、观测值、坐标系统和必要采集参数
-    output_type:
-      data_type: 异常处理结果、解释辅助图件或工具说明
-      format: CSV、GeoTIFF、GeoJSON或JSON
-    runtime_condition:
-      environment: 专业物探软件、Python科学计算库或平台物探工具
-      compute: CPU，中大型反演任务需高性能计算资源
-    limitation:
-      - 物探解释存在多解性
-      - 反演参数和地质约束需专家确认
-    call_mode: lightweight_service
-    related_agent:
-      - 知识智能体
-      - 假说智能体
-      - 仿真智能体
-    handoff_rule: 轻量异常检测调用 geophysics_anomaly(method=electrical)；复杂反演转交仿真智能体
-  - id: geophysics_inversion_index
-    name: 重磁电反演模型索引
-    category: 复杂模型
-    source: 专业建模、仿真或计算平台
-    capability_boundary: 用于复杂建模、仿真、反演或资源分析的能力索引和调用说明
-    applicable_task: 深部结构约束和隐伏矿预测
-    input_requirement:
-      data_type: 多源地质、地球物理、地球化学、实验或模型约束数据
-      format: 专业模型文件、CSV、GeoPackage、GeoTIFF或平台数据对象
-      requirement: 需明确模型目标、边界条件、关键参数和专家约束
-    output_type:
-      data_type: 模型结果、仿真结果、反演结果或评价结果
-      format: 模型文件、网格、图件、表格或报告摘要
-    runtime_condition:
-      environment: 专业软件、仿真平台或高性能计算环境
-      compute: 中高算力，部分任务需GPU或集群资源
-    limitation:
-      - 参数敏感且不确定性较高
-      - 需由对应专业课题和专家进行解释与复核
-    call_mode: handoff_to_simulation_agent
-    related_agent:
-      - 知识智能体
-      - 仿真智能体
-      - 实验智能体
-    handoff_rule: 知识智能体提供重磁电反演工具说明、输入数据清单和调用请求模板，反演计算转交仿真智能体执行
-  - id: model_3d_geology_index
-    name: 三维地质建模工具索引
-    category: 复杂模型
-    source: 专业建模、仿真或计算平台
-    capability_boundary: 用于复杂建模、仿真、反演或资源分析的能力索引和调用说明
-    applicable_task: 三维地质框架建模
-    input_requirement:
-      data_type: 多源地质、地球物理、地球化学、实验或模型约束数据
-      format: 专业模型文件、CSV、GeoPackage、GeoTIFF或平台数据对象
-      requirement: 需明确模型目标、边界条件、关键参数和专家约束
-    output_type:
-      data_type: 模型结果、仿真结果、反演结果或评价结果
-      format: 模型文件、网格、图件、表格或报告摘要
-    runtime_condition:
-      environment: 专业软件、仿真平台或高性能计算环境
-      compute: 中高算力，部分任务需GPU或集群资源
-    limitation:
-      - 参数敏感且不确定性较高
-      - 需由对应专业课题和专家进行解释与复核
-    call_mode: handoff_to_simulation_agent
-    related_agent:
-      - 知识智能体
-      - 仿真智能体
-      - 实验智能体
-    handoff_rule: 知识智能体提供三维建模工具说明、数据条件和调用请求模板，建模工作转交仿真智能体执行
-  - id: model_metallogenic_simulation_index
-    name: 成矿过程模拟模型索引
-    category: 复杂模型
-    source: 专业建模、仿真或计算平台
-    capability_boundary: 用于复杂建模、仿真、反演或资源分析的能力索引和调用说明
-    applicable_task: 成矿过程模拟
-    input_requirement:
-      data_type: 多源地质、地球物理、地球化学、实验或模型约束数据
-      format: 专业模型文件、CSV、GeoPackage、GeoTIFF或平台数据对象
-      requirement: 需明确模型目标、边界条件、关键参数和专家约束
-    output_type:
-      data_type: 模型结果、仿真结果、反演结果或评价结果
-      format: 模型文件、网格、图件、表格或报告摘要
-    runtime_condition:
-      environment: 专业软件、仿真平台或高性能计算环境
-      compute: 中高算力，部分任务需GPU或集群资源
-    limitation:
-      - 参数敏感且不确定性较高
-      - 需由对应专业课题和专家进行解释与复核
-    call_mode: handoff_to_simulation_agent
-    related_agent:
-      - 知识智能体
-      - 仿真智能体
-      - 实验智能体
-    handoff_rule: 知识智能体提供能力索引、输入清单和调用说明，主体计算由对应专业智能体承担
-  - id: model_fluid_migration_index
-    name: 流体运移模拟模型索引
-    category: 复杂模型
-    source: 专业建模、仿真或计算平台
-    capability_boundary: 用于复杂建模、仿真、反演或资源分析的能力索引和调用说明
-    applicable_task: 流体运移和沉淀过程模拟
-    input_requirement:
-      data_type: 多源地质、地球物理、地球化学、实验或模型约束数据
-      format: 专业模型文件、CSV、GeoPackage、GeoTIFF或平台数据对象
-      requirement: 需明确模型目标、边界条件、关键参数和专家约束
-    output_type:
-      data_type: 模型结果、仿真结果、反演结果或评价结果
-      format: 模型文件、网格、图件、表格或报告摘要
-    runtime_condition:
-      environment: 专业软件、仿真平台或高性能计算环境
-      compute: 中高算力，部分任务需GPU或集群资源
-    limitation:
-      - 参数敏感且不确定性较高
-      - 需由对应专业课题和专家进行解释与复核
-    call_mode: handoff_to_simulation_agent
-    related_agent:
-      - 知识智能体
-      - 仿真智能体
-      - 实验智能体
-    handoff_rule: 知识智能体提供能力索引、输入清单和调用说明，主体计算由对应专业智能体承担
-  - id: model_thermodynamics_index
-    name: 热力学平衡计算模型索引
-    category: 复杂模型
-    source: 专业建模、仿真或计算平台
-    capability_boundary: 用于复杂建模、仿真、反演或资源分析的能力索引和调用说明
-    applicable_task: 成矿环境约束
-    input_requirement:
-      data_type: 多源地质、地球物理、地球化学、实验或模型约束数据
-      format: 专业模型文件、CSV、GeoPackage、GeoTIFF或平台数据对象
-      requirement: 需明确模型目标、边界条件、关键参数和专家约束
-    output_type:
-      data_type: 模型结果、仿真结果、反演结果或评价结果
-      format: 模型文件、网格、图件、表格或报告摘要
-    runtime_condition:
-      environment: 专业软件、仿真平台或高性能计算环境
-      compute: 中高算力，部分任务需GPU或集群资源
-    limitation:
-      - 参数敏感且不确定性较高
-      - 需由对应专业课题和专家进行解释与复核
-    call_mode: handoff_to_simulation_agent
-    related_agent:
-      - 知识智能体
-      - 仿真智能体
-      - 实验智能体
-    handoff_rule: 知识智能体提供能力索引、输入清单和调用说明，主体计算由对应专业智能体承担
-  - id: model_dft_index
-    name: 第一性原理计算工具索引
-    category: 复杂模型
-    source: 专业建模、仿真或计算平台
-    capability_boundary: 用于复杂建模、仿真、反演或资源分析的能力索引和调用说明
-    applicable_task: 矿物和元素赋存机制计算
-    input_requirement:
-      data_type: 多源地质、地球物理、地球化学、实验或模型约束数据
-      format: 专业模型文件、CSV、GeoPackage、GeoTIFF或平台数据对象
-      requirement: 需明确模型目标、边界条件、关键参数和专家约束
-    output_type:
-      data_type: 模型结果、仿真结果、反演结果或评价结果
-      format: 模型文件、网格、图件、表格或报告摘要
-    runtime_condition:
-      environment: 专业软件、仿真平台或高性能计算环境
-      compute: 中高算力，部分任务需GPU或集群资源
-    limitation:
-      - 参数敏感且不确定性较高
-      - 需由对应专业课题和专家进行解释与复核
-    call_mode: handoff_to_simulation_or_experiment_agent
-    related_agent:
-      - 知识智能体
-      - 仿真智能体
-      - 实验智能体
-    handoff_rule: 知识智能体提供能力索引、输入清单和调用说明，主体计算由对应专业智能体承担
-  - id: resource_estimation_index
-    name: 资源量估算工具索引
-    category: 复杂模型
-    source: 专业建模、仿真或计算平台
-    capability_boundary: 用于复杂建模、仿真、反演或资源分析的能力索引和调用说明
-    applicable_task: 资源量估算
-    input_requirement:
-      data_type: 多源地质、地球物理、地球化学、实验或模型约束数据
-      format: 专业模型文件、CSV、GeoPackage、GeoTIFF或平台数据对象
-      requirement: 需明确模型目标、边界条件、关键参数和专家约束
-    output_type:
-      data_type: 模型结果、仿真结果、反演结果或评价结果
-      format: 模型文件、网格、图件、表格或报告摘要
-    runtime_condition:
-      environment: 专业软件、仿真平台或高性能计算环境
-      compute: 中高算力，部分任务需GPU或集群资源
-    limitation:
-      - 参数敏感且不确定性较高
-      - 需由对应专业课题和专家进行解释与复核
-    call_mode: indexed_or_handoff
-    related_agent:
-      - 知识智能体
-      - 仿真智能体
-      - 实验智能体
-    handoff_rule: 知识智能体提供能力索引、输入清单和调用说明，主体计算由对应专业智能体承担
-  - id: experiment_method_recommendation
-    name: 实验测试方法推荐工具索引
-    category: 实验方法
-    source: 实验测试规范、仪器方法库或专家经验库
-    capability_boundary: 支持实验测试方法索引、适用条件说明和方案推荐支撑
-    applicable_task: 样品测试方案辅助选择
-    input_requirement:
-      data_type: 样品类型、待验证问题、目标元素或矿物信息
-      format: 结构化任务描述、样品表或实验需求清单
-      requirement: 需说明样品类型、测试目标、精度需求和约束条件
-    output_type:
-      data_type: 测试方法建议、输入条件清单或转交请求模板
-      format: JSON、表格或文本说明
-    runtime_condition:
-      environment: 实验方法知识库或实验智能体
-      compute: 低算力
-    limitation:
-      - 具体实验流程需结合仪器条件和样品状态确定
-      - 测试方案需由实验智能体和专家确认
-    call_mode: handoff_to_experiment_agent
-    related_agent:
-      - 知识智能体
-      - 实验智能体
-    handoff_rule: 知识智能体提供方法索引和测试条件说明，具体实验方案由实验智能体生成
-  - id: isotope_test_method_index
-    name: 同位素测试方法索引
-    category: 实验方法
-    source: 实验测试规范、仪器方法库或专家经验库
-    capability_boundary: 支持实验测试方法索引、适用条件说明和方案推荐支撑
-    applicable_task: 同位素测试方法选择
-    input_requirement:
-      data_type: 样品类型、待验证问题、目标元素或矿物信息
-      format: 结构化任务描述、样品表或实验需求清单
-      requirement: 需说明样品类型、测试目标、精度需求和约束条件
-    output_type:
-      data_type: 测试方法建议、输入条件清单或转交请求模板
-      format: JSON、表格或文本说明
-    runtime_condition:
-      environment: 实验方法知识库或实验智能体
-      compute: 低算力
-    limitation:
-      - 具体实验流程需结合仪器条件和样品状态确定
-      - 测试方案需由实验智能体和专家确认
-    call_mode: handoff_to_experiment_agent
-    related_agent:
-      - 知识智能体
-      - 实验智能体
-    handoff_rule: 知识智能体提供方法索引和测试条件说明，具体实验方案由实验智能体生成
-  - id: trace_element_test_method_index
-    name: 微量元素测试方法索引
-    category: 实验方法
-    source: 实验测试规范、仪器方法库或专家经验库
-    capability_boundary: 支持实验测试方法索引、适用条件说明和方案推荐支撑
-    applicable_task: 微量元素测试方法选择
-    input_requirement:
-      data_type: 样品类型、待验证问题、目标元素或矿物信息
-      format: 结构化任务描述、样品表或实验需求清单
-      requirement: 需说明样品类型、测试目标、精度需求和约束条件
-    output_type:
-      data_type: 测试方法建议、输入条件清单或转交请求模板
-      format: JSON、表格或文本说明
-    runtime_condition:
-      environment: 实验方法知识库或实验智能体
-      compute: 低算力
-    limitation:
-      - 具体实验流程需结合仪器条件和样品状态确定
-      - 测试方案需由实验智能体和专家确认
-    call_mode: handoff_to_experiment_agent
-    related_agent:
-      - 知识智能体
-      - 实验智能体
-    handoff_rule: 知识智能体提供方法索引和测试条件说明，具体实验方案由实验智能体生成
-  - id: mineralogy_test_method_index
-    name: 矿物学测试方法索引
-    category: 实验方法
-    source: 实验测试规范、仪器方法库或专家经验库
-    capability_boundary: 支持实验测试方法索引、适用条件说明和方案推荐支撑
-    applicable_task: 矿物学测试方法选择
-    input_requirement:
-      data_type: 样品类型、待验证问题、目标元素或矿物信息
-      format: 结构化任务描述、样品表或实验需求清单
-      requirement: 需说明样品类型、测试目标、精度需求和约束条件
-    output_type:
-      data_type: 测试方法建议、输入条件清单或转交请求模板
-      format: JSON、表格或文本说明
-    runtime_condition:
-      environment: 实验方法知识库或实验智能体
-      compute: 低算力
-    limitation:
-      - 具体实验流程需结合仪器条件和样品状态确定
-      - 测试方案需由实验智能体和专家确认
-    call_mode: handoff_to_experiment_agent
-    related_agent:
-      - 知识智能体
-      - 实验智能体
-    handoff_rule: 知识智能体提供方法索引和测试条件说明，具体实验方案由实验智能体生成
-  - id: literature_report_analysis_index
-    name: 文献报告分析工具索引
-    category: 知识工具
-    source: 文献报告分析工具、知识抽取模块或知识库任务成果
-    capability_boundary: 支持文献报告分析工具能力索引和调用说明，主体知识抽取由知识资源任务承担
-    applicable_task: 文献报告分析工具能力索引
-    input_requirement:
-      data_type: 文献、报告、图表或结构化知识请求
-      format: PDF、DOCX、TXT、Markdown或结构化文本
-      requirement: 需明确检索主题、分析目标和来源范围
-    output_type:
-      data_type: 文献工具说明、调用建议或知识抽取结果索引
-      format: JSON、Markdown或知识库记录
-    runtime_condition:
-      environment: 知识抽取工具、RAG系统或知识库平台
-      compute: CPU/GPU视模型调用方式而定
-    limitation:
-      - 文献解析质量受版式和OCR影响
-      - 推理链抽取由任务3承担
-    call_mode: handoff_to_knowledge_resource_task
-    related_agent:
-      - 知识智能体
-    handoff_rule: 知识智能体提供文献报告分析工具索引，文献知识抽取由任务1承担，推理链抽取由任务3承担
-  - id: sam_segment
-    name: SAM交互分割服务
-    category: 视觉智能
-    source: Segment Anything / SAM2 或平台视觉推理服务
-    capability_boundary: 点/框提示交互分割；轻量演示后端已移出可执行注册表，生产环境需接入 SAM/SAM2 或平台视觉服务
-    applicable_task: 地学影像交互分割
-    input_requirement:
-      data_type: 光学影像或 GeoTIFF
-      format: PNG、JPG、GeoTIFF
-      requirement: 点或框提示；无提示时整幅影像
-    output_type:
-      data_type: 分割掩膜、叠加预览和矢量轮廓
-      format: PNG、GeoJSON、JSON
-    runtime_condition:
-      environment: 平台视觉推理服务或 GPU 上的 SAM/SAM2
-      compute: GPU 推荐
-    limitation:
-      - 不在 GeoInvoke 运行时内执行轻量 smoke 后端
-      - 地学专用目标需微调或专项模型
-    call_mode: handoff_to_knowledge_resource_task
-    related_agent:
-      - 知识智能体
-      - 假说智能体
-    handoff_rule: 通过资产目录发现与标准化接口转交视觉专项服务；接入生产权重后可重新注册为可执行工具
-  - id: object_detection
-    name: 目标检测服务
-    category: 视觉智能
-    source: YOLO / RT-DETR 或平台目标检测服务
-    capability_boundary: 影像目标框检测；轻量演示后端已移出可执行注册表
-    applicable_task: 地学影像目标检测
-    input_requirement:
-      data_type: 光学影像或 GeoTIFF
-      format: PNG、JPG、GeoTIFF
-      requirement: 建议明确目标类别与置信度阈值
-    output_type:
-      data_type: 检测框矢量与叠加图
-      format: GeoJSON、PNG、JSON
-    runtime_condition:
-      environment: 平台检测服务或 GPU 推理
-      compute: GPU 推荐
-    limitation:
-      - 不在 GeoInvoke 运行时内执行 contrast-region smoke 后端
-    call_mode: handoff_to_knowledge_resource_task
-    related_agent:
-      - 知识智能体
-      - 假说智能体
-    handoff_rule: 转交视觉/知识智能体或外部检测服务；统一 tool 资产接口保持不变
-  - id: semantic_segmentation
-    name: 语义分割服务
-    category: 视觉智能
-    source: DeepLab / SegFormer 或平台语义分割服务
-    capability_boundary: 像元级语义分割；轻量演示后端已移出可执行注册表
-    applicable_task: 地学影像语义分割
-    input_requirement:
-      data_type: 光学影像或 GeoTIFF
-      format: PNG、JPG、GeoTIFF
-      requirement: 类别标签列表或默认二类分割
-    output_type:
-      data_type: 类别标签图与统计
-      format: PNG、JSON
-    runtime_condition:
-      environment: 平台分割服务或 GPU 推理
-      compute: GPU 推荐
-    limitation:
-      - 不在 GeoInvoke 运行时内执行 color-quantize smoke 后端
-    call_mode: handoff_to_knowledge_resource_task
-    related_agent:
-      - 知识智能体
-      - 假说智能体
-    handoff_rule: 转交视觉专项服务；KPI 类保留为标准化资产与 handoff 入口
-  - id: literature_search
-    name: 文献检索服务
-    category: 知识工具
-    source: Crossref/CNKI/OpenAlex 或知识智能体文献库
-    capability_boundary: 地学文献与报告检索；本地 catalog smoke 已移出可执行注册表
-    applicable_task: 文献与报告检索
-    input_requirement:
-      data_type: 检索主题或自然语言问题
-      format: 文本查询
-      requirement: 主题词、时间范围与来源偏好
-    output_type:
-      data_type: 文献列表、摘要、DOI
-      format: JSON
-    runtime_condition:
-      environment: 知识智能体或授权文献 API
-      compute: CPU
-    limitation:
-      - 不在 GeoInvoke 运行时内执行 local_catalog smoke
-    call_mode: handoff_to_knowledge_resource_task
-    related_agent:
-      - 知识智能体
-    handoff_rule: 转交知识智能体或外部文献系统；保留统一 discover/handoff 元数据
-  - id: document_parse
-    name: 文本解析服务
-    category: 知识工具
-    source: OCR/文档解析服务
-    capability_boundary: 文献报告结构化解析；轻量 text_parser smoke 已移出可执行注册表
-    applicable_task: 文档解析
-    input_requirement:
-      data_type: 文献、报告或文本
-      format: TXT、MD、PDF 等
-      requirement: 扫描件质量影响 OCR 效果
-    output_type:
-      data_type: 全文与段落结构
-      format: TXT、JSON
-    runtime_condition:
-      environment: 知识智能体或专项 OCR 服务
-      compute: CPU/GPU 视 OCR 而定
-    limitation:
-      - 不在 GeoInvoke 运行时内执行演示级解析
-    call_mode: handoff_to_knowledge_resource_task
-    related_agent:
-      - 知识智能体
-    handoff_rule: 转交知识智能体或文档解析服务
-  - id: info_extract
-    name: 信息提取服务
-    category: 知识工具
-    source: LLM/IE 模型或知识智能体
-    capability_boundary: 结构化字段抽取；规则 smoke 已移出可执行注册表
-    applicable_task: 文本信息提取
-    input_requirement:
-      data_type: 纯文本或解析后文档
-      format: 文本或 JSON
-      requirement: 可指定抽取字段
-    output_type:
-      data_type: 结构化抽取结果
-      format: JSON
-    runtime_condition:
-      environment: 知识智能体或 IE 服务
-      compute: CPU/GPU
-    limitation:
-      - 不在 GeoInvoke 运行时内执行 rule_extract smoke
-    call_mode: handoff_to_knowledge_resource_task
-    related_agent:
-      - 知识智能体
-    handoff_rule: 转交知识智能体完成抽取与校验
-  - id: vision_sam_segment
-    name: SAM交互分割工具
-    category: 视觉智能
-    source: Segment Anything / SAM2 或平台视觉推理服务
-    capability_boundary: 支持点/框提示的交互式影像分割，输出掩膜与矢量轮廓；复杂场景精度受提示质量和模型权重影响
-    applicable_task: 地学影像交互分割与对象提取
-    input_requirement:
-      data_type: 光学影像或GeoTIFF
-      format: PNG、JPG、GeoTIFF
-      requirement: 可提供点或框提示；无提示时默认整幅影像
-    output_type:
-      data_type: 分割掩膜、叠加预览和矢量轮廓
-      format: PNG、GeoJSON、JSON
-    runtime_condition:
-      environment: Python + Pillow；生产环境可替换为SAM/SAM2 GPU推理
-      compute: CPU轻量后端，正式权重建议GPU
-    limitation:
-      - 当前部署为轻量提示掩膜后端，非官方SAM权重
-      - 地学专用目标建议后续微调或替换权重
-    call_mode: handoff_to_knowledge_resource_task
-    related_agent:
-      - 知识智能体
-      - 假说智能体
-    handoff_rule: 与 sam_segment 资产同能力；执行转交视觉专项服务
-  - id: vision_object_detection
-    name: 目标检测工具
-    category: 视觉智能
-    source: YOLO / RT-DETR 或平台目标检测服务
-    capability_boundary: 支持影像目标框检测与结果可视化，适用于滑坡、建筑、采坑等地物定位
-    applicable_task: 地学影像目标检测
-    input_requirement:
-      data_type: 光学影像或GeoTIFF
-      format: PNG、JPG、GeoTIFF
-      requirement: 明确目标类别和置信度阈值更佳
-    output_type:
-      data_type: 检测框矢量与叠加图
-      format: GeoJSON、PNG、JSON
-    runtime_condition:
-      environment: Python + Pillow；生产环境可替换为YOLO等检测器
-      compute: CPU轻量后端，正式权重建议GPU
-    limitation:
-      - 当前部署为对比区域启发式检测后端
-      - 类别语义需由训练权重或后处理规则提供
-    call_mode: handoff_to_knowledge_resource_task
-    related_agent:
-      - 知识智能体
-      - 假说智能体
-    handoff_rule: 与 object_detection 资产同能力；执行转交检测服务
-  - id: vision_semantic_segmentation
-    name: 语义分割工具
-    category: 视觉智能
-    source: DeepLab / SegFormer 或平台语义分割服务
-    capability_boundary: 支持像元级语义分割与类别统计，适用于土地覆被、岩性粗分等任务
-    applicable_task: 地学影像语义分割
-    input_requirement:
-      data_type: 光学影像或GeoTIFF
-      format: PNG、JPG、GeoTIFF
-      requirement: 需提供类别标签列表或默认二类分割
-    output_type:
-      data_type: 类别标签图、彩色预览和类别统计
-      format: PNG、JSON
-    runtime_condition:
-      environment: Python + Pillow；生产环境可替换为语义分割模型
-      compute: CPU轻量后端，正式权重建议GPU
-    limitation:
-      - 当前部署为颜色量化/阈值轻量后端
-      - 细粒度地物类别需训练或微调模型
-    call_mode: handoff_to_knowledge_resource_task
-    related_agent:
-      - 知识智能体
-      - 假说智能体
-    handoff_rule: 与 semantic_segmentation 资产同能力；执行转交分割服务
-  - id: knowledge_literature_search
-    name: 文献检索工具
-    category: 知识工具
-    source: 本地文献目录或 Crossref/CNKI/OpenAlex 等文献接口
-    capability_boundary: 支持按主题、年份和来源检索地学文献与报告，返回摘要与DOI；复杂全文库检索可对接外部文献系统
-    applicable_task: 地学文献与报告检索
-    input_requirement:
-      data_type: 检索主题或自然语言问题
-      format: 文本查询
-      requirement: 建议明确主题词、时间范围和来源偏好
-    output_type:
-      data_type: 文献列表、摘要、DOI和链接
-      format: JSON
-    runtime_condition:
-      environment: Python + 本地目录；生产可对接外部文献API
-      compute: CPU
-    limitation:
-      - 当前部署默认检索本地示例目录
-      - 商业数据库需授权与适配器
-    call_mode: handoff_to_knowledge_resource_task
-    related_agent:
-      - 知识智能体
-    handoff_rule: 与 literature_search 同能力；执行转交知识智能体
-  - id: knowledge_document_parse
-    name: 文本解析工具
-    category: 知识工具
-    source: 文本解析器或OCR/文档解析服务
-    capability_boundary: 支持将文献报告解析为全文和段落结构，便于后续信息抽取
-    applicable_task: 文献报告文本解析
-    input_requirement:
-      data_type: 文献、报告或文本文件
-      format: TXT、MD、CSV、JSON，可选PDF
-      requirement: PDF需安装可选依赖或先转为文本
-    output_type:
-      data_type: 全文、段落列表和解析摘要
-      format: TXT、JSON
-    runtime_condition:
-      environment: Python；PDF可选pypdf
-      compute: CPU
-    limitation:
-      - 复杂版式和扫描件质量影响解析效果
-      - DOCX需额外适配
-    call_mode: handoff_to_knowledge_resource_task
-    related_agent:
-      - 知识智能体
-    handoff_rule: 与 document_parse 同能力；执行转交知识智能体
-  - id: knowledge_info_extract
-    name: 信息提取工具
-    category: 知识工具
-    source: 规则抽取或LLM/IE模型服务
-    capability_boundary: 支持从文本中提取元素、年份、DOI、地名和测量值等结构化字段
-    applicable_task: 文本信息提取与结构化输出
-    input_requirement:
-      data_type: 纯文本或解析后的文档JSON
-      format: 文本或JSON
-      requirement: 可指定抽取字段列表
-    output_type:
-      data_type: 结构化抽取结果和证据摘要
-      format: JSON
-    runtime_condition:
-      environment: Python规则引擎；生产可替换为LLM/IE
-      compute: CPU，模型后端可使用GPU
-    limitation:
-      - 当前为规则抽取骨架，召回率有限
-      - 复杂关系与推理链抽取需更强模型
-    call_mode: handoff_to_knowledge_resource_task
-    related_agent:
-      - 知识智能体
-      - 假说智能体
-    handoff_rule: 与 info_extract 同能力；执行转交知识智能体
-  - id: lineament_extraction
-    name: 构造线性特征提取工具
-    category: 遥感
-    source: 边缘检测、方向滤波与Hough线段提取轻量服务
-    capability_boundary: 支持从遥感影像提取线性构造候选线段与边缘增强图；复杂地质解译需专家复核
-    applicable_task: 构造线性特征提取
-    input_requirement:
-      data_type: 遥感影像或GeoTIFF
-      format: PNG、JPG、GeoTIFF
-      requirement: 建议先完成预处理与研究区裁剪
-    output_type:
-      data_type: 边缘栅格、线性构造矢量与摘要
-      format: PNG、GeoJSON、JSON
-    runtime_condition:
-      environment: Python + Pillow/numpy；GeoTIFF需rasterio
-      compute: CPU
-    limitation:
-      - 当前为lineament_v0轻量后端
-      - 噪声与分辨率显著影响线段质量
-    call_mode: lightweight_service
-    related_agent:
-      - 知识智能体
-      - 假说智能体
-    handoff_rule: 知识智能体可直接调用；构造成因解释转交假说智能体
-  - id: geophysics_anomaly
-    name: 地球物理异常处理工具
-    category: 物探
-    source: 统一重力/磁法/电法轻量异常处理服务
-    capability_boundary: 支持按method选择重力、磁法或电法进行阈值异常检测与统计；复杂反演不在本服务范围
-    applicable_task: 地球物理异常处理
-    input_requirement:
-      data_type: 物探测点或网格化数值表
-      format: CSV
-      requirement: 需指定观测值字段，可选坐标字段
-    output_type:
-      data_type: 统一geophysical_anomaly结果与统计摘要
-      format: CSV、JSON
-    runtime_condition:
-      environment: Python统计后端
-      compute: CPU
-    limitation:
-      - 当前为统计阈值骨架
-      - 反演与深部建模需移交复杂模型
-    call_mode: lightweight_service
-    related_agent:
-      - 知识智能体
-      - 假说智能体
-      - 仿真智能体
-    handoff_rule: 轻量异常由本服务执行；反演计算转交仿真智能体
+      - 多个输入镶嵌时 CRS 与波段结构应一致
+  - id: gdal.raster_build_vrt
+    mcp_name: raster_build_vrt
+    name: 虚拟镶嵌/波段堆叠
+    category: raster
+    capability: [raster_mosaic]
+    call_mode: executable
+    long_running: true
+    description: 构建 VRT，不复制像元，适合大量分幅。
+    input:
+      data_type: 多个栅格
+      format: GDAL 可读栅格，须同一 CRS
+      requirement: 工作区内路径列表；output_path 须以 .vrt 结尾
+    output:
+      data_type: 虚拟栅格
+      format: VRT
+    limitation:
+      - VRT 只引用源文件，源文件移动后失效
+      - 不做重投影
+  - id: gdal.raster_calc
+    mcp_name: raster_calc
+    name: 波段计算
+    category: raster
+    capability: [raster_calculate]
+    call_mode: executable
+    long_running: true
+    description: 逐像元波段运算（指数、掩膜、阈值、重分类）。
+    input:
+      data_type: 一个或多个栅格
+      format: GDAL 可读栅格
+      requirement: 输入以单字母 A–Z 命名；须给 output_path
+    output:
+      data_type: 栅格
+      format: GeoTIFF
+    limitation:
+      - 表达式只允许白名单内的算术、比较和 numpy 函数
+  - id: gdal.raster_overviews
+    mcp_name: raster_overviews
+    name: 构建/清除金字塔
+    category: raster
+    capability: [raster_overviews]
+    call_mode: executable
+    long_running: true
+    description: 构建或清除金字塔，加速大图显示。
+    input:
+      data_type: 栅格
+      format: GeoTIFF / COG 等
+      requirement: 缺省原地写入；external=true 时写 .ovr
+    output:
+      data_type: 金字塔（内部或外挂 .ovr）
+    limitation:
+      - 默认会修改输入文件，除非 external=true
+  - id: gdal.raster_polygonize
+    mcp_name: raster_polygonize
+    name: 栅格转面
+    category: conversion
+    capability: [raster_polygonize]
+    call_mode: executable
+    long_running: true
+    description: 把相同像元值的连通区转为多边形。
+    input:
+      data_type: 类别栅格
+      format: GDAL 可读栅格
+      requirement: 工作区内路径；须给 output_path
+    output:
+      data_type: 面矢量
+      format: GPKG / GeoJSON / FlatGeobuf
+    limitation:
+      - 连续值栅格应先阈值化为类别栅格
+  - id: gdal.dem_slope
+    mcp_name: dem_slope
+    name: DEM 坡度
+    category: terrain
+    capability: [dem_slope]
+    call_mode: executable
+    long_running: true
+    description: 由 DEM 计算坡度（度或百分比）。
+    input:
+      data_type: DEM
+      format: GeoTIFF / COG / VRT / SRTMHGT 等
+      requirement: 工作区内路径；须给 output_path
+    output:
+      data_type: 坡度栅格
+      format: GeoTIFF
+    limitation:
+      - 经纬度 DEM（高程为米）须设 scale=111120，否则结果会警告
+  - id: gdal.dem_aspect
+    mcp_name: dem_aspect
+    name: DEM 坡向
+    category: terrain
+    capability: [dem_aspect]
+    call_mode: executable
+    long_running: true
+    description: 由 DEM 计算坡向（缺省 0°=正北、顺时针）。
+    input:
+      data_type: DEM
+      format: GeoTIFF / COG / VRT / SRTMHGT 等
+      requirement: 工作区内路径；须给 output_path
+    output:
+      data_type: 坡向栅格
+      format: GeoTIFF
+    limitation:
+      - 平坦区缺省为 -9999，除非 zero_for_flat
+  - id: gdal.dem_hillshade
+    mcp_name: dem_hillshade
+    name: DEM 山体阴影
+    category: terrain
+    capability: [dem_hillshade]
+    call_mode: executable
+    long_running: true
+    description: 由 DEM 生成山体阴影 Byte 栅格。
+    input:
+      data_type: DEM
+      format: GeoTIFF / COG / VRT / SRTMHGT 等
+      requirement: 工作区内路径；须给 output_path
+    output:
+      data_type: 山体阴影栅格
+      format: GeoTIFF
+    limitation:
+      - 经纬度 DEM 须设 scale=111120
+  - id: gdal.dem_terrain_index
+    mcp_name: dem_terrain_index
+    name: DEM 地形指数
+    category: terrain
+    capability: [terrain_index]
+    call_mode: executable
+    long_running: true
+    description: 计算 TRI、TPI 或 roughness。
+    input:
+      data_type: DEM
+      format: GeoTIFF / COG / VRT / SRTMHGT 等
+      requirement: 工作区内路径；须给 output_path
+    output:
+      data_type: 地形指数栅格
+      format: GeoTIFF
+    limitation:
+      - 结果单位与输入高程单位相同
+  - id: gdal.dem_contour
+    mcp_name: dem_contour
+    name: DEM 等值线
+    category: terrain
+    capability: [contour_extract]
+    call_mode: executable
+    long_running: true
+    description: 由 DEM 提取等值线或等值面。
+    input:
+      data_type: DEM
+      format: GeoTIFF / COG / VRT / SRTMHGT 等
+      requirement: interval 与 fixed_levels 二选一；须给 output_path
+    output:
+      data_type: 等值线/等值面矢量
+      format: GPKG / GeoJSON / FlatGeobuf
+    limitation:
+      - 输出沿用输入 CRS
+  - id: gdal.vector_info
+    mcp_name: vector_info
+    name: 矢量元数据
+    category: inspect
+    capability: [vector_info]
+    call_mode: executable
+    long_running: false
+    description: 读取图层、几何类型、CRS、范围与要素数。
+    input:
+      data_type: 矢量
+      format: OGR 可读矢量
+      requirement: 工作区内本地文件路径
+    output:
+      data_type: JSON 元数据
+    limitation:
+      - 不写出新矢量
+  - id: gdal.vector_convert
+    mcp_name: vector_convert
+    name: 矢量转换/重投影/过滤
+    category: vector
+    capability: [vector_convert, coordinate_transform]
+    call_mode: executable
+    long_running: true
+    description: 转换格式、重投影，或按范围/属性过滤。
+    input:
+      data_type: 矢量
+      format: OGR 可读矢量
+      requirement: 工作区内路径；须给 output_path
+    output:
+      data_type: 矢量
+      format: GPKG / GeoJSON / Shapefile / FlatGeobuf
+    limitation:
+      - Shapefile 字段名长度受限
